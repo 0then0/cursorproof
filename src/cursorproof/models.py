@@ -8,6 +8,12 @@ from cursorproof.config import Identity, Model, Positive
 class Item(Model):
     id: Identity
     sort_key: list[int] | None = None
+    fingerprint: str | None = None
+
+
+class SnapshotItem(Model):
+    id: Identity
+    fingerprint: str
 
 
 class Page(Model):
@@ -29,10 +35,11 @@ class Traversal(Model):
 
 class BindingObservation(Model):
     parameter: str
+    case: Positive
+    phase: Literal["baseline", "cursor"]
     request: str
-    cursor: str
+    cursor: str | None = None
     status: int
-    accepted_rejection: bool
 
 
 class Issue(Model):
@@ -53,6 +60,8 @@ class Trace(Model):
     traversals: list[Traversal] = Field(min_length=1)
     oracle: list[Identity] | None = None
     oracle_ordered: bool = True
+    oracle_snapshot: list[SnapshotItem] | None = None
+    binding_reject_statuses: list[int] = Field(default_factory=lambda: [400, 409, 422])
     bindings: list[BindingObservation] = Field(default_factory=list)
     mutations: list[MutationEvent] = Field(default_factory=list)
     errors: list[Issue] = Field(default_factory=list)

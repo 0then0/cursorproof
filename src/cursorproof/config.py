@@ -69,8 +69,17 @@ class Response(Model):
     next_cursor: str = "$.next_cursor"
     has_more: str | None = None
     id: str = "$.id"
+    snapshot_fields: list[str] = Field(default_factory=list)
 
     _paths = field_validator("items", "next_cursor", "id")(path_field)
+
+    @field_validator("snapshot_fields")
+    @classmethod
+    def snapshot_paths(cls, values: list[str]) -> list[str]:
+        checked = [path_field(value) for value in values]
+        if len(set(checked)) != len(checked):
+            raise ValueError("Snapshot fields must be unique")
+        return checked
 
     @field_validator("has_more")
     @classmethod
@@ -153,7 +162,7 @@ class Config(Model):
     limits: list[Positive] = Field(default_factory=lambda: [1, 10, 50, 51, 100], min_length=1)
     repeats: Positive = 1
     timeout: float = Field(default=10.0, gt=0)
-    max_pages: Positive = 1000
+    max_pages: Positive = 10_000
     max_items: Positive = 100_000
     max_response_bytes: Positive = 10_000_000
     consistency: Literal["static", "snapshot", "live-keyset"] = "static"
@@ -177,6 +186,15 @@ class Config(Model):
             raise ValueError("Mutation hooks require snapshot or live-keyset consistency")
         if self.consistency != "static" and (len(self.limits) != 1 or self.repeats != 1):
             raise ValueError("Mutation modes require one limit and one traversal")
+        if self.consistency == "snapshot" and self.oracle is None:
+            raise ValueError("Snapshot consistency requires an oracle for the initial item stream")
+        if self.consistency == "snapshot":
+            if not self.response.snapshot_fields:
+                raise ValueError("Snapshot consistency requires response.snapshot_fields")
+            if self.oracle and self.oracle.format == "lines":
+                raise ValueError("Snapshot oracle must return JSON records, not ID lines")
+        elif self.response.snapshot_fields:
+            raise ValueError("response.snapshot_fields is only valid with snapshot consistency")
         if self.consistency == "live-keyset":
             if not self.ordering or not self.immutable_ordering:
                 raise ValueError("Live keyset requires ordering and immutable_ordering: true")

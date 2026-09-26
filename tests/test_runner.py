@@ -217,6 +217,31 @@ def test_oracle_missing_extra_and_order() -> None:
     assert report.findings[0].item_ids == [2, 3]
 
 
+def test_missing_items_does_not_hide_shared_order_violation() -> None:
+    def handle(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json=[1, 2, 3] if request.url.path == "/oracle" else page([3, 1]),
+        )
+
+    report = run(
+        config(oracle={"url": "https://api.test/oracle"}),
+        transport=httpx.MockTransport(handle),
+    )
+    assert codes(report) == {"CP003", "CP004"}
+    missing = next(finding for finding in report.findings if finding.code == "CP003")
+    assert missing.locations == []
+
+
+def test_snapshot_requires_oracle_and_fields() -> None:
+    with pytest.raises(ValueError, match="requires an oracle"):
+        config(consistency="snapshot")
+    with pytest.raises(ValueError, match="snapshot_fields"):
+        config(consistency="snapshot", oracle={"url": "https://api.test/oracle"})
+    with pytest.raises(ValueError, match="only valid with snapshot"):
+        config(response={"snapshot_fields": ["$.status"]})
+
+
 def test_oracle_unordered_and_duplicates() -> None:
     def handle(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json=[1, 2] if request.url.path == "/oracle" else page([2, 1]))
@@ -265,6 +290,8 @@ def test_cross_limit_stream_and_repetitions() -> None:
 def test_binding_policy(status: int, exit_code: int) -> None:
     def handle(request: httpx.Request) -> httpx.Response:
         if request.url.params["status"] == "closed":
+            if "cursor" not in request.url.params:
+                return httpx.Response(200, json=page([]))
             assert request.url.params["cursor"] == "A"
             return httpx.Response(status, json={})
         return httpx.Response(
@@ -278,7 +305,7 @@ def test_binding_policy(status: int, exit_code: int) -> None:
         transport=httpx.MockTransport(handle),
     )
     assert report.exit_code == exit_code
-    assert len(report.trace.bindings) == 1
+    assert [item.phase for item in report.trace.bindings] == ["baseline", "cursor"]
 
 
 def test_binding_no_cursor_is_incomplete() -> None:
@@ -289,6 +316,42 @@ def test_binding_no_cursor_is_incomplete() -> None:
         transport=scripted([page([])]),
     )
     assert report.exit_code == 2
+
+
+def test_invalid_binding_alternative_does_not_count_as_rejection() -> None:
+    def handle(request: httpx.Request) -> httpx.Response:
+        if request.url.params["status"] == "invalid":
+            return httpx.Response(400, json={})
+        return httpx.Response(
+            200,
+            json=page([1], "A") if "cursor" not in request.url.params else page([2]),
+        )
+
+    report = run(
+        config(
+            parameters={"status": "open"},
+            cursor_binding={"parameters": {"status": ["invalid"]}},
+        ),
+        transport=httpx.MockTransport(handle),
+    )
+    assert report.exit_code == 2
+    assert not report.findings
+    assert any("invalid without a cursor" in error.message for error in report.errors)
+
+
+def test_default_page_budget_handles_over_one_thousand_items() -> None:
+    def handle(request: httpx.Request) -> httpx.Response:
+        limit = int(request.url.params["limit"])
+        start = int(request.url.params.get("cursor", "0"))
+        stop = min(start + limit, 1001)
+        return httpx.Response(
+            200,
+            json=page(list(range(start, stop)), str(stop) if stop < 1001 else None),
+        )
+
+    report = run(config(limits=[1]), transport=httpx.MockTransport(handle))
+    assert report.exit_code == 0
+    assert report.summary.pages == 1001
 
 
 def test_secrets_and_raw_cursor_not_in_report() -> None:
@@ -319,15 +382,21 @@ def test_mutation_hook_runs_between_pages(tmp_path: Path) -> None:
     import sys
 
     def handle(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/oracle":
+            return httpx.Response(200, json=[{"id": 1, "value": "a"}, {"id": 2, "value": "b"}])
         if "cursor" in request.url.params:
             assert (tmp_path / "changed").exists()
-            return httpx.Response(200, json=page([2]))
+            return httpx.Response(
+                200, json={"results": [{"id": 2, "value": "b"}], "next_cursor": None}
+            )
         assert not (tmp_path / "changed").exists()
-        return httpx.Response(200, json=page([1], "A"))
+        return httpx.Response(200, json={"results": [{"id": 1, "value": "a"}], "next_cursor": "A"})
 
     report = run(
         config(
             consistency="snapshot",
+            response={"snapshot_fields": ["$.value"]},
+            oracle={"url": "https://api.test/oracle", "items": "$", "id": "$.id"},
             mutations=[
                 {
                     "after_page": 1,
@@ -347,9 +416,13 @@ def test_mutation_hook_runs_between_pages(tmp_path: Path) -> None:
 
 
 def test_unreached_mutation_is_incomplete() -> None:
+    import sys
+
     report = run(
         config(
             consistency="snapshot",
+            response={"snapshot_fields": ["$.value"]},
+            oracle={"command": [sys.executable, "-c", "print('[]')"]},
             mutations=[
                 {
                     "after_page": 1,

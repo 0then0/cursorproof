@@ -1,5 +1,13 @@
 from cursorproof.config import Identity
-from cursorproof.models import Finding, Issue, Location, Report, Summary, Trace
+from cursorproof.models import (
+    BindingObservation,
+    Finding,
+    Issue,
+    Location,
+    Report,
+    Summary,
+    Trace,
+)
 
 
 def identity_key(value: Identity) -> tuple[type[str] | type[int], Identity]:
@@ -134,9 +142,59 @@ def analyze(trace: Trace) -> Report:
                 actual = {identity_key(item) for item in stream}
                 missing = [item for item in trace.oracle if identity_key(item) not in actual]
                 extra = [item for item in stream if identity_key(item) not in expected]
+                expected_common = [
+                    identity for identity in trace.oracle if identity_key(identity) in actual
+                ]
+                common_seen: set[tuple[type[str] | type[int], Identity]] = set()
+                actual_common: list[Identity] = []
+                for identity in stream:
+                    key = identity_key(identity)
+                    if key in expected and key not in common_seen:
+                        actual_common.append(identity)
+                        common_seen.add(key)
+                order_mismatch = trace.oracle_ordered and expected_common != actual_common
+                if trace.oracle_snapshot is not None:
+                    expected_fingerprints = {
+                        identity_key(item.id): item.fingerprint for item in trace.oracle_snapshot
+                    }
+                    content_changes: dict[
+                        tuple[type[str] | type[int], Identity], tuple[Identity, Location]
+                    ] = {}
+                    for page in traversal.pages:
+                        for position, item in enumerate(page.items, 1):
+                            expected_fingerprint = expected_fingerprints.get(identity_key(item.id))
+                            if (
+                                expected_fingerprint is not None
+                                and item.fingerprint is not None
+                                and item.fingerprint != expected_fingerprint
+                            ):
+                                content_changes.setdefault(
+                                    identity_key(item.id),
+                                    (
+                                        item.id,
+                                        Location(
+                                            traversal=run_number,
+                                            page=page.number,
+                                            position=position,
+                                        ),
+                                    ),
+                                )
+                    if content_changes:
+                        findings.append(
+                            Finding(
+                                code="CP011",
+                                name="SNAPSHOT_CONTENT_CHANGED",
+                                message=(
+                                    "Snapshot fields changed after reading the initial oracle."
+                                ),
+                                locations=[location for _, location in content_changes.values()],
+                                item_ids=[item_id for item_id, _ in content_changes.values()][:20],
+                                count=len(content_changes),
+                            )
+                        )
                 if missing:
                     # Neighbours bound a missing interval only for an ordered oracle.
-                    if trace.oracle_ordered:
+                    if trace.oracle_ordered and not order_mismatch:
                         group: list[Identity] = []
                         left: Location | None = None
                         for expected_id in trace.oracle:
@@ -168,6 +226,19 @@ def analyze(trace: Trace) -> Report:
                                     count=len(group),
                                 )
                             )
+                    elif order_mismatch:
+                        findings.append(
+                            Finding(
+                                code="CP003",
+                                name="MISSING_ITEMS",
+                                message=(
+                                    "Oracle items are missing; the page boundary is ambiguous "
+                                    "because item order also differs."
+                                ),
+                                item_ids=missing[:20],
+                                count=len(missing),
+                            )
+                        )
                     else:
                         findings.append(
                             Finding(
@@ -189,12 +260,12 @@ def analyze(trace: Trace) -> Report:
                             count=len(extra),
                         )
                     )
-                if trace.oracle_ordered and not missing and not extra and stream != trace.oracle:
+                if order_mismatch:
                     findings.append(
                         Finding(
                             code="CP004",
                             name="ORACLE_ORDER_MISMATCH",
-                            message="The observed sequence differs from the ordered oracle.",
+                            message="The relative order of oracle items differs from the oracle.",
                             locations=[Location(traversal=run_number, page=1)],
                         )
                     )
@@ -218,17 +289,39 @@ def analyze(trace: Trace) -> Report:
                         ),
                     )
                 )
+    bindings: dict[int, list[BindingObservation]] = {}
     for binding in trace.bindings:
-        if binding.accepted_rejection:
-            if not 400 <= binding.status < 500:
-                errors.append(Issue(message="Invalid binding rejection evidence in trace"))
-        elif 200 <= binding.status < 300:
+        bindings.setdefault(binding.case, []).append(binding)
+    for observations in bindings.values():
+        baselines = [item for item in observations if item.phase == "baseline"]
+        cursor_probes = [item for item in observations if item.phase == "cursor"]
+        if len(baselines) != 1 or len(cursor_probes) > 1:
+            errors.append(Issue(message="Binding probe trace is incomplete or inconsistent"))
+            continue
+        baseline_observation = baselines[0]
+        if not 200 <= baseline_observation.status < 300:
+            errors.append(Issue(message="Changed query is invalid without a cursor"))
+            continue
+        if len(cursor_probes) != 1:
+            errors.append(Issue(message="Binding probe lacks its cursor request"))
+            continue
+        cursor_probe = cursor_probes[0]
+        if cursor_probe.cursor is None:
+            errors.append(Issue(message="Binding cursor evidence is missing"))
+        elif (
+            cursor_probe.status in trace.binding_reject_statuses
+            and 400 <= cursor_probe.status < 500
+        ):
+            continue
+        elif 200 <= cursor_probe.status < 300:
             findings.append(
                 Finding(
                     code="CP007",
                     name="CURSOR_BINDING_VIOLATION",
-                    message=f"Cursor was accepted after changing parameter {binding.parameter}.",
-                    requests=[binding.request],
+                    message=(
+                        f"Cursor was accepted after changing parameter {cursor_probe.parameter}."
+                    ),
+                    requests=[baseline_observation.request, cursor_probe.request],
                 )
             )
         else:

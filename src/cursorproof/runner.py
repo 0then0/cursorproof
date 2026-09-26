@@ -1,3 +1,4 @@
+import hashlib
 import json
 import math
 import subprocess
@@ -19,6 +20,7 @@ from cursorproof.models import (
     MutationEvent,
     Page,
     Report,
+    SnapshotItem,
     Trace,
     Traversal,
 )
@@ -36,6 +38,7 @@ class ExecutionError(ValueError):
 class RawItem:
     item: Item
     values: list[SortValue]
+    fingerprint: str | None = None
 
 
 def identity(value: object) -> Identity:
@@ -94,6 +97,17 @@ def decode_json(body: bytes) -> object:
         raise ExecutionError("Response is not valid finite JSON") from None
 
 
+def content_fingerprint(item: object, fields: list[str]) -> str:
+    values = [extract(item, field) for field in fields]
+    try:
+        encoded = json.dumps(
+            values, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
+        ).encode("utf-8")
+    except (TypeError, ValueError, UnicodeError, RecursionError):
+        raise ExecutionError("Snapshot fields are not finite JSON values") from None
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def fetch(client: httpx.Client, request: httpx.Request, max_bytes: int) -> tuple[int, bytes]:
     try:
         response = client.send(request, stream=True)
@@ -138,7 +152,7 @@ def read_oracle(
     config: Config,
     cwd: Path,
     transport: httpx.BaseTransport | None,
-) -> list[Identity]:
+) -> list[tuple[Identity, str | None]]:
     if oracle.command is not None:
         body = command_output(oracle.command, oracle.timeout, cwd, config.max_response_bytes)
     else:
@@ -159,8 +173,16 @@ def read_oracle(
         raise ExecutionError("Oracle items must be an array")
     if len(values) > config.max_items:
         raise ExecutionError("Oracle exceeded max_items")
-    result = [identity(extract(value, oracle.id)) for value in values]
-    if len({identity_key(value) for value in result}) != len(result):
+    result = [
+        (
+            identity(extract(value, oracle.id)),
+            content_fingerprint(value, config.response.snapshot_fields)
+            if config.response.snapshot_fields
+            else None,
+        )
+        for value in values
+    ]
+    if len({identity_key(value) for value, _ in result}) != len(result):
         raise ExecutionError("Oracle contains duplicate identities")
     return result
 
@@ -196,23 +218,39 @@ def probe_binding(
 ) -> None:
     binding = config.cursor_binding
     assert binding is not None
+    case = 0
     for name, alternatives in binding.parameters.items():
         for alternative in alternatives:
+            case += 1
             params: dict[str, Parameter] = {
                 **config.parameters,
                 name: alternative,
                 config.pagination.limit_param: limit,
-                config.pagination.cursor_param: cursor,
             }
             request = build_request(client, config.url, params)
             status, _ = fetch(client, request, config.max_response_bytes)
             trace.bindings.append(
                 BindingObservation(
                     parameter=redactor.text(name),
+                    case=case,
+                    phase="baseline",
                     request=redactor.url(str(request.url), config.pagination.cursor_param),
-                    cursor=cast(str, redactor.cursor(cursor)),
                     status=status,
-                    accepted_rejection=status in binding.reject_statuses,
+                )
+            )
+            if not 200 <= status < 300:
+                continue
+            cursor_params = {**params, config.pagination.cursor_param: cursor}
+            cursor_request = build_request(client, config.url, cursor_params)
+            cursor_status, _ = fetch(client, cursor_request, config.max_response_bytes)
+            trace.bindings.append(
+                BindingObservation(
+                    parameter=redactor.text(name),
+                    case=case,
+                    phase="cursor",
+                    request=redactor.url(str(cursor_request.url), config.pagination.cursor_param),
+                    cursor=cast(str, redactor.cursor(cursor)),
+                    status=cursor_status,
                 )
             )
 
@@ -269,7 +307,14 @@ def traverse(
                 raise ExecutionError("Traversal exceeded max_items")
             page_rows = [
                 RawItem(
-                    item=Item(id=redactor.identity(identity(extract(value, config.response.id)))),
+                    item=Item(
+                        id=redactor.identity(identity(extract(value, config.response.id))),
+                        fingerprint=(
+                            content_fingerprint(value, config.response.snapshot_fields)
+                            if config.response.snapshot_fields
+                            else None
+                        ),
+                    ),
                     values=[
                         sort_value(extract(value, field.field), field) for field in config.ordering
                     ],
@@ -331,6 +376,9 @@ def run(
         tool_version=__version__,
         consistency=config.consistency,
         ordering_fields=[redactor.text(field.field) for field in config.ordering],
+        binding_reject_statuses=(
+            config.cursor_binding.reject_statuses if config.cursor_binding else [400, 409, 422]
+        ),
         traversals=[
             Traversal(limit=limit, repetition=repetition)
             for limit in config.limits
@@ -352,15 +400,18 @@ def run(
         )
     if config.oracle:
         try:
-            trace.oracle = [
-                redactor.identity(value)
-                for value in read_oracle(
-                    config.oracle,
-                    config,
-                    cwd,
-                    transport,
-                )
-            ]
+            oracle_rows = read_oracle(
+                config.oracle,
+                config,
+                cwd,
+                transport,
+            )
+            trace.oracle = [redactor.identity(value) for value, _ in oracle_rows]
+            if config.response.snapshot_fields:
+                trace.oracle_snapshot = [
+                    SnapshotItem(id=redactor.identity(value), fingerprint=cast(str, fingerprint))
+                    for value, fingerprint in oracle_rows
+                ]
             trace.oracle_ordered = config.oracle.ordered
         except (ExecutionError, ValueError, OSError, httpx.HTTPError, httpx.InvalidURL) as exc:
             message = str(exc) if isinstance(exc, ExecutionError) else "Oracle response is invalid"

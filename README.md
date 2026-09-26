@@ -72,7 +72,7 @@ limits: [1, 2, 5, 10, 50, 51, 100]
 repeats: 2
 consistency: static
 timeout: 10
-max_pages: 1000
+max_pages: 10000
 max_items: 100000
 max_response_bytes: 10000000
 ```
@@ -150,10 +150,25 @@ completeness**. Equal streams across limits can all omit the same records.
 complete ordered ID streams are compared across limits and repetitions. Set
 `repeats: 2` or more to test repeated traversal at each limit.
 
-`snapshot` checks a traversal against the initial oracle when supplied. The test
-environment must ensure the oracle represents the API snapshot, including the
-interval between reading the oracle and fetching the first page. CursorProof
-cannot create a shared database/API snapshot through generic HTTP.
+`snapshot` requires an oracle and `response.snapshot_fields`. The oracle must return
+full JSON records, and selected fields are fingerprinted before traversal. CursorProof
+compares each returned record's selected fields with that initial oracle. This detects
+membership, order, and selected-content changes. It cannot create a shared database/API
+snapshot through generic HTTP, so the test environment must ensure the oracle represents
+the same snapshot, including the interval before the first page.
+
+```yaml
+consistency: snapshot
+response:
+  items: $.results
+  next_cursor: $.next_cursor
+  id: $.id
+  snapshot_fields: [$.created_at, $.status]
+oracle:
+  url: http://localhost:8000/internal/orders/all
+  items: $.results
+  id: $.id
+```
 
 `live-keyset` checks observed order and duplicate identities with immutable sort
 keys and identities. It allows inserts/deletes and makes no completeness claim.
@@ -167,6 +182,12 @@ between the specified page and the next page, in configuration order:
 ```yaml
 consistency: snapshot
 limits: [5]
+response:
+  snapshot_fields: [$.created_at, $.status]
+oracle:
+  url: http://localhost:8000/internal/orders/all
+  items: $.results
+  id: $.id
 mutations:
   - after_page: 1
     command: [python, mutate.py, insert]
@@ -201,6 +222,9 @@ A 2xx response violates the declared rejection policy. Other unlisted statuses
 (including 401, 403, 429, and 5xx by default) are inconclusive errors, not evidence of
 correct binding. No available cursor makes this requested check incomplete.
 This tests query parameters, not a change of authentication identity or headers.
+Before sending a cursor probe, CursorProof sends the changed query without a cursor;
+that baseline must succeed. This prevents an invalid alternative value from falsely
+proving that the cursor is bound.
 
 ## Findings and exit codes
 
@@ -214,6 +238,7 @@ This tests query parameters, not a change of authentication identity or headers.
 - `CP008 TERMINATION_ERROR`: `has_more` contradicts terminal cursor semantics.
 - `CP009 INCONSISTENT_TRAVERSAL`: complete streams differ across runs.
 - `CP010 UNEXPECTED_ITEMS`: returned identities are absent from the oracle.
+- `CP011 SNAPSHOT_CONTENT_CHANGED`: a selected record field differs from the initial oracle.
 
 Findings contain locations and affected IDs where available. An ordered oracle
 locates missing intervals between the nearest observed neighbours. These bound the
@@ -234,23 +259,33 @@ it excludes oracle responses and failed requests.
 ## Reproduction and privacy
 
 `run` saves `cursorproof-repro.json` by default; use `--repro PATH` to change it.
+The default trace filename is ignored by Git.
 Existing trace files at that path are replaced atomically. `replay` rechecks the
-recorded observations **offline**, without HTTP, hooks, or configuration secrets.
+recorded observations offline, without HTTP or commands. To reissue one saved traversal
+against the API, provide the original configuration and a traversal number:
+
+```sh
+cursorproof replay cursorproof-repro.json --config cursorproof.yml --traversal 2
+```
+
+Live replay runs the selected limit once, without the other limits and repetitions.
+If the config contains mutation hooks, pass `--execute-hooks` to run those commands.
+They can change real data, so restore the test environment before replay.
 The versioned trace stores page boundaries, identity sequences, status codes,
 request descriptions, cursor aliases, and order-preserving ranks for sort values.
 It does not store full response bodies, headers, commands, or raw cursors.
 
 Environment substitutions and configured header values are redacted from recorded
-strings; cursor aliases retain equality/cycle evidence. IDs containing known secrets
+strings; cursor aliases retain equality/cycle evidence. Snapshot field values are
+stored as SHA-256 fingerprints, not as plain text. IDs containing known secrets
 receive stable aliases within the run. Sensitive query names are masked. Ordinary
 item IDs are retained for debugging, so traces may still contain application data.
 Credentials should always come from environment references. Raw sort values are
 omitted; ranks preserve ordering evidence, not the original values.
 
-Offline replay reproduces the checks on recorded evidence. Reissuing the HTTP
-scenario requires the original configuration, credentials, and restored dataset;
-it is not promised by this release. Expiring cursors and external state cannot be
-restored by a random seed.
+Offline replay reproduces the checks on recorded evidence. Live replay needs the
+original configuration, credentials, and suitable current data; expiring cursors,
+external state, and mutation effects cannot be restored automatically.
 
 ## Development
 

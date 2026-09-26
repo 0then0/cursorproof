@@ -147,13 +147,65 @@ def run(
 def replay(
     trace: Annotated[Path, typer.Argument(help="Previously saved reproduction trace.")],
     output_format: Annotated[Format, typer.Option("--format")] = Format.text,
+    config: Annotated[
+        Path | None, typer.Option("--config", help="Reissue one traversal against the API.")
+    ] = None,
+    traversal_number: Annotated[int, typer.Option("--traversal", min=1)] = 1,
+    execute_hooks: Annotated[
+        bool,
+        typer.Option(
+            "--execute-hooks",
+            help="Run configured oracle and mutation commands during live replay.",
+        ),
+    ] = False,
 ) -> None:
-    """Re-evaluate recorded observations offline. Never send HTTP or execute hooks."""
+    """Replay recorded evidence offline, or reissue one traversal with --config."""
     try:
         recorded = Trace.model_validate_json(trace.read_bytes())
     except (OSError, ValidationError, ValueError):
         fail("Cannot read trace or unsupported/invalid trace schema", output_format)
         return
-    report = analyze(recorded)
+    if config is None:
+        if execute_hooks:
+            fail("--execute-hooks requires --config", output_format)
+            return
+        report = analyze(recorded)
+    else:
+        if traversal_number > len(recorded.traversals):
+            fail("Traversal number is outside the saved trace", output_format)
+            return
+        try:
+            parsed, secrets = load_config(config)
+        except ConfigError as exc:
+            fail(str(exc), output_format)
+            return
+        if parsed.consistency != recorded.consistency:
+            fail("Replay configuration consistency does not match the saved trace", output_format)
+            return
+        has_commands = bool(parsed.mutations) or bool(parsed.oracle and parsed.oracle.command)
+        if has_commands and not execute_hooks:
+            fail(
+                "Live replay has configured commands; pass --execute-hooks to run them",
+                output_format,
+            )
+            return
+        if execute_hooks and not has_commands:
+            fail(
+                "--execute-hooks was set, but the replay configuration has no commands",
+                output_format,
+            )
+            return
+        selected = recorded.traversals[traversal_number - 1]
+        replay_config = parsed.model_copy(
+            update={
+                "limits": [selected.limit],
+                "repeats": 1,
+            }
+        )
+        report = execute(replay_config, cwd=config.resolve().parent, secrets=secrets)
+        report.notes.append(
+            f"Live replay of saved traversal {traversal_number}; results may differ "
+            "if API data or external state changed."
+        )
     display(report, output_format)
     raise typer.Exit(report.exit_code)

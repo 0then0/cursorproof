@@ -90,11 +90,13 @@ def test_mutation_failure_stops_before_next_page(command: list[str], tmp_path: P
 
     def handle(request: httpx.Request) -> httpx.Response:
         requests.append(request)
-        return httpx.Response(200, json={"results": [{"id": 1}], "next_cursor": "A"})
+        return httpx.Response(200, json={"results": [{"id": 1, "value": "a"}], "next_cursor": "A"})
 
     report = run(
         config(
             consistency="snapshot",
+            response={"snapshot_fields": ["$.value"]},
+            oracle={"command": [sys.executable, "-c", "print('[]')"]},
             mutations=[
                 {
                     "after_page": 1,
@@ -117,14 +119,16 @@ def test_snapshot_oracle_detects_visibility_changes(
 ) -> None:
     def handle(request: httpx.Request) -> httpx.Response:
         if request.url.path == "/oracle":
-            return httpx.Response(200, json=[1, 2])
+            return httpx.Response(200, json=[{"id": 1, "value": "a"}, {"id": 2, "value": "b"}])
         if "cursor" not in request.url.params:
-            return httpx.Response(200, json={"results": [{"id": 1}], "next_cursor": "A"})
+            return httpx.Response(
+                200, json={"results": [{"id": 1, "value": "a"}], "next_cursor": "A"}
+            )
         assert (tmp_path / "mutated").exists()
         return httpx.Response(
             200,
             json={
-                "results": [{"id": 2 if snapshot else 3}],
+                "results": [{"id": 2 if snapshot else 3, "value": "b"}],
                 "next_cursor": None,
             },
         )
@@ -132,7 +136,8 @@ def test_snapshot_oracle_detects_visibility_changes(
     report = run(
         config(
             consistency="snapshot",
-            oracle={"url": "https://api.test/oracle"},
+            response={"snapshot_fields": ["$.value"]},
+            oracle={"url": "https://api.test/oracle", "items": "$", "id": "$.id"},
             mutations=[
                 {
                     "after_page": 1,
@@ -150,3 +155,24 @@ def test_snapshot_oracle_detects_visibility_changes(
     assert report.exit_code == expected_exit
     if not snapshot:
         assert {finding.code for finding in report.findings} == {"CP003", "CP010"}
+
+
+def test_snapshot_detects_content_updates_with_same_identity() -> None:
+    def handle(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/oracle":
+            return httpx.Response(200, json=[{"id": 1, "status": "open"}])
+        return httpx.Response(
+            200,
+            json={"results": [{"id": 1, "status": "closed"}], "next_cursor": None},
+        )
+
+    report = run(
+        config(
+            consistency="snapshot",
+            response={"snapshot_fields": ["$.status"]},
+            oracle={"url": "https://api.test/oracle", "items": "$", "id": "$.id"},
+        ),
+        transport=httpx.MockTransport(handle),
+    )
+    assert report.exit_code == 1
+    assert "CP011" in {finding.code for finding in report.findings}

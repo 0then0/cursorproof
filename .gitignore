@@ -42,6 +42,8 @@ htmlcov/
 .nox/
 .coverage
 .coverage.*
+.cursorproof-repro.json
+cursorproof-repro.json
 .cache
 nosetests.xml
 coverage.xml
