@@ -2,13 +2,15 @@ import hashlib
 import json
 import math
 import os
+import signal
 import subprocess
 import tempfile
+import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import cast
+from typing import Any, BinaryIO, cast
 
 import httpx
 
@@ -27,9 +29,51 @@ from cursorproof.models import (
     Traversal,
 )
 from cursorproof.paths import extract
-from cursorproof.privacy import Redactor
+from cursorproof.privacy import Redactor, replay_fingerprint
 
 type SortValue = str | int | float | datetime | None
+
+
+def _popen_options() -> dict[str, object]:
+    if os.name == "nt":
+        return {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}  # type: ignore[attr-defined]
+    return {"start_new_session": True}
+
+
+def _kill_process_tree(process: subprocess.Popen[bytes]) -> None:
+    try:
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+                timeout=5,
+            )
+        else:
+            os.killpg(process.pid, signal.SIGKILL)
+    except (OSError, subprocess.SubprocessError):
+        if process.poll() is None:
+            process.kill()
+    finally:
+        process.wait()
+
+
+def _copy_bounded_output(
+    source: BinaryIO,
+    destination: BinaryIO,
+    max_bytes: int,
+    exceeded: threading.Event,
+) -> None:
+    size = 0
+    while chunk := source.read(64 * 1024):
+        allowed = max_bytes + 1 - size
+        destination.write(chunk[:allowed])
+        size += min(len(chunk), allowed)
+        if size > max_bytes:
+            exceeded.set()
+            return
 
 
 class ExecutionError(ValueError):
@@ -161,29 +205,42 @@ def command_output(command: list[str], timeout: float, cwd: Path, max_bytes: int
                 command,
                 cwd=cwd,
                 stdin=subprocess.DEVNULL,
-                stdout=output,
+                stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,
+                **cast(Any, _popen_options()),
             )
             deadline = time.monotonic() + timeout
+            exceeded = threading.Event()
+            assert process.stdout is not None
+            reader = threading.Thread(
+                target=_copy_bounded_output,
+                args=(process.stdout, output, max_bytes, exceeded),
+                daemon=True,
+            )
+            reader.start()
             try:
-                while process.poll() is None:
-                    if os.fstat(output.fileno()).st_size > max_bytes:
-                        process.kill()
-                        process.wait()
-                        raise ExecutionError("Oracle output exceeded max_response_bytes")
+                while process.poll() is None and not exceeded.is_set():
                     remaining = deadline - time.monotonic()
                     if remaining <= 0:
-                        process.kill()
-                        process.wait()
+                        _kill_process_tree(process)
                         raise ExecutionError("Oracle command could not execute or timed out")
-                    time.sleep(min(0.01, remaining))
+                    exceeded.wait(min(0.01, remaining))
+                if exceeded.is_set():
+                    _kill_process_tree(process)
+                    raise ExecutionError("Oracle output exceeded max_response_bytes")
+                reader.join(max(0, deadline - time.monotonic()))
+                if reader.is_alive():
+                    _kill_process_tree(process)
+                    raise ExecutionError("Oracle command could not execute or timed out")
+                if exceeded.is_set():
+                    _kill_process_tree(process)
+                    raise ExecutionError("Oracle output exceeded max_response_bytes")
             except BaseException:
                 if process.poll() is None:
-                    process.kill()
-                    process.wait()
+                    _kill_process_tree(process)
+                process.stdout.close()
+                reader.join(timeout=1)
                 raise
-            if os.fstat(output.fileno()).st_size > max_bytes:
-                raise ExecutionError("Oracle output exceeded max_response_bytes")
             if process.returncode != 0:
                 raise ExecutionError("Oracle command failed")
             output.seek(0)
@@ -238,18 +295,26 @@ def run_mutations(config: Config, page: int, cwd: Path, trace: Trace) -> None:
         if hook.after_page != page:
             continue
         try:
-            result = subprocess.run(
+            process = subprocess.Popen(
                 hook.command,
                 cwd=cwd,
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                timeout=hook.timeout,
-                check=False,
+                **cast(Any, _popen_options()),
             )
-        except (OSError, subprocess.TimeoutExpired):
+            try:
+                return_code = process.wait(timeout=hook.timeout)
+            except subprocess.TimeoutExpired:
+                _kill_process_tree(process)
+                raise ExecutionError("Mutation hook could not execute or timed out") from None
+            except BaseException:
+                if process.poll() is None:
+                    _kill_process_tree(process)
+                raise
+        except OSError:
             raise ExecutionError("Mutation hook could not execute or timed out") from None
-        if result.returncode:
+        if return_code:
             raise ExecutionError("Mutation hook failed")
         trace.mutations.append(MutationEvent(after_page=page))
 
@@ -428,6 +493,7 @@ def run(
     redactor = Redactor(secret_values)
     trace = Trace(
         tool_version=__version__,
+        replay_fingerprint=replay_fingerprint(config, secret_values),
         consistency=config.consistency,
         ordering_fields=[redactor.text(field.field) for field in config.ordering],
         binding_reject_statuses=(

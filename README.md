@@ -271,8 +271,14 @@ cursorproof replay cursorproof-repro.json --config cursorproof.yml --traversal 2
 Live replay runs the selected limit once, without the other limits and repetitions.
 If the config contains mutation hooks, pass `--execute-hooks` to run those commands.
 They can change real data, so restore the test environment before replay.
+The trace includes a fingerprint of the sanitized replay configuration. Live replay
+rejects changes to response paths, ordering, oracle, mutation hooks, and other checks.
+Sensitive authentication header values are excluded from the fingerprint so credentials
+can rotate; other header values remain part of the replay contract.
 Trace schema version 2 migrates version 1 static traces. Older snapshot and cursor-binding
 traces replay as incomplete because they lack the evidence those checks now require.
+Older version 2 traces without a replay fingerprint remain available for offline replay
+but cannot be live-replayed safely.
 The versioned trace stores page boundaries, identity sequences, status codes,
 request descriptions, cursor aliases, and order-preserving ranks for sort values.
 It does not store full response bodies, headers, commands, or raw cursors.

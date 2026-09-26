@@ -8,6 +8,7 @@ from hypothesis import strategies as st
 from cursorproof.checks import analyze
 from cursorproof.config import Config
 from cursorproof.models import Item, Page, Trace, Traversal
+from cursorproof.privacy import replay_fingerprint
 from cursorproof.runner import run
 
 
@@ -553,6 +554,34 @@ def test_auth_query_parameter_is_redacted_from_trace() -> None:
     )
     assert secret not in report.model_dump_json()
     assert "auth=%5BREDACTED%5D" in report.trace.traversals[0].pages[0].request
+
+
+def test_key_query_parameter_is_redacted_from_saved_trace() -> None:
+    secret = "cp-review-sensitive-123"
+    report = run(
+        config(url=f"https://api.test/orders?key={secret}", limits=[1]),
+        transport=scripted([page([])]),
+    )
+
+    assert report.exit_code == 0
+    assert secret not in report.trace.model_dump_json()
+    assert "key=%5BREDACTED%5D" in report.trace.traversals[0].pages[0].request
+
+
+def test_replay_fingerprint_allows_rotating_authentication_header() -> None:
+    previous = config(headers={"Authorization": "Bearer old-secret"})
+    current = config(headers={"Authorization": "Bearer new-secret"})
+
+    assert replay_fingerprint(previous, {"old-secret"}) == replay_fingerprint(
+        current, {"new-secret"}
+    )
+
+
+def test_replay_fingerprint_includes_non_auth_header_values() -> None:
+    previous = config(headers={"X-Tenant": "tenant-a"})
+    current = config(headers={"X-Tenant": "tenant-b"})
+
+    assert replay_fingerprint(previous, set()) != replay_fingerprint(current, set())
 
 
 def test_mutation_hook_runs_between_pages(tmp_path: Path) -> None:

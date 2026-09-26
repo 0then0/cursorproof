@@ -1,11 +1,14 @@
+import io
 import sys
+import time
 from pathlib import Path
 
 import httpx
 import pytest
 
 from cursorproof.config import Config
-from cursorproof.runner import ExecutionError, command_output, run
+from cursorproof.models import Trace, Traversal
+from cursorproof.runner import ExecutionError, command_output, run, run_mutations
 
 
 def config(**changes: object) -> Config:
@@ -77,7 +80,9 @@ def test_oracle_failure_is_incomplete_and_stops_before_http(
     assert not report.findings
 
 
-def test_oracle_command_output_is_stopped_at_byte_limit(tmp_path: Path) -> None:
+def test_oracle_command_output_is_bounded_at_byte_limit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     command = [
         sys.executable,
         "-c",
@@ -87,8 +92,84 @@ def test_oracle_command_output_is_stopped_at_byte_limit(tmp_path: Path) -> None:
         " sys.stdout.flush()\n"
         " time.sleep(.001)\n",
     ]
+
+    class TrackingOutput(io.BytesIO):
+        largest_size = 0
+
+        def write(self, data: bytes) -> int:
+            written = super().write(data)
+            self.largest_size = max(self.largest_size, self.tell())
+            return written
+
+    output = TrackingOutput()
+    monkeypatch.setattr("cursorproof.runner.tempfile.TemporaryFile", lambda: output)
     with pytest.raises(ExecutionError, match="exceeded max_response_bytes"):
         command_output(command, timeout=5, cwd=tmp_path, max_bytes=1024)
+    assert output.largest_size <= 1025
+
+
+def test_oracle_command_output_accepts_exact_limit_and_rejects_one_over(
+    tmp_path: Path,
+) -> None:
+    exact = [sys.executable, "-c", "import sys; sys.stdout.write('x' * 4)"]
+    one_over = [sys.executable, "-c", "import sys; sys.stdout.write('x' * 5)"]
+
+    assert command_output(exact, timeout=1, cwd=tmp_path, max_bytes=4) == b"xxxx"
+    with pytest.raises(ExecutionError, match="exceeded max_response_bytes"):
+        command_output(one_over, timeout=1, cwd=tmp_path, max_bytes=4)
+
+
+def test_oracle_timeout_kills_child_processes(tmp_path: Path) -> None:
+    marker = tmp_path / "late-oracle-child"
+    child = (
+        f"import time; from pathlib import Path; time.sleep(.3); "
+        f"Path({str(marker)!r}).write_text('late')"
+    )
+    parent = (
+        "import subprocess,sys,time; "
+        f"subprocess.Popen([sys.executable,'-c',{child!r}]); time.sleep(5)"
+    )
+
+    with pytest.raises(ExecutionError, match="timed out"):
+        command_output([sys.executable, "-c", parent], timeout=0.05, cwd=tmp_path, max_bytes=1024)
+
+    time.sleep(0.4)
+    assert not marker.exists()
+
+
+def test_mutation_timeout_kills_child_processes(tmp_path: Path) -> None:
+    marker = tmp_path / "late-mutation-child"
+    child = (
+        f"import time; from pathlib import Path; time.sleep(.3); "
+        f"Path({str(marker)!r}).write_text('late')"
+    )
+    parent = (
+        "import subprocess,sys,time; "
+        f"subprocess.Popen([sys.executable,'-c',{child!r}]); time.sleep(5)"
+    )
+    config_with_hook = config(
+        consistency="snapshot",
+        response={"snapshot_fields": ["$"]},
+        oracle={"command": [sys.executable, "-c", "print('[]')"]},
+        mutations=[
+            {
+                "after_page": 1,
+                "command": [sys.executable, "-c", parent],
+                "timeout": 0.05,
+            }
+        ],
+    )
+    trace = Trace(
+        tool_version="test",
+        consistency="snapshot",
+        traversals=[Traversal(limit=2)],
+    )
+
+    with pytest.raises(ExecutionError, match="timed out"):
+        run_mutations(config_with_hook, 1, tmp_path, trace)
+
+    time.sleep(0.4)
+    assert not marker.exists()
 
 
 @pytest.mark.parametrize(

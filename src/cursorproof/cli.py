@@ -14,7 +14,7 @@ from cursorproof import __version__
 from cursorproof.checks import analyze
 from cursorproof.config import ConfigError, load_config
 from cursorproof.models import Report, Trace, parse_trace
-from cursorproof.privacy import Redactor
+from cursorproof.privacy import Redactor, replay_fingerprint
 from cursorproof.runner import build_request
 from cursorproof.runner import run as execute
 
@@ -187,6 +187,15 @@ def replay(
             return
         if parsed.consistency != recorded.consistency:
             fail("Replay configuration consistency does not match the saved trace", output_format)
+            return
+        if recorded.replay_fingerprint is None:
+            fail(
+                "Saved trace lacks replay contract evidence; live replay is unavailable",
+                output_format,
+            )
+            return
+        if replay_fingerprint(parsed, secrets) != recorded.replay_fingerprint:
+            fail("Replay configuration contract does not match the saved trace", output_format)
             return
         selected = recorded.traversals[traversal_number - 1]
         if not selected.pages:

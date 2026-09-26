@@ -1,3 +1,5 @@
+import hashlib
+import json
 import re
 from urllib.parse import parse_qsl, quote, quote_plus, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
@@ -6,7 +8,7 @@ from cursorproof.config import Identity
 
 _SENSITIVE = re.compile(
     r"token|secret|password|authorization|auth|api[_-]?key|access[_-]?key|"
-    r"credential|signature|(^|[_-])sig($|[_-])|session|cookie|jwt",
+    r"credential|signature|(^|[_-])sig($|[_-])|session|cookie|jwt|(^|[_-])key($|[_-])",
     re.I,
 )
 
@@ -72,3 +74,37 @@ class Redactor:
                 safe = self.text(item)
             query.append((self.text(name), safe))
         return self.text(urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), "")))
+
+
+def replay_fingerprint(config: object, secrets: set[str]) -> str:
+    """Hash the replay contract after removing credentials and sensitive URL values."""
+    from cursorproof.config import Config
+
+    if not isinstance(config, Config):
+        raise TypeError("Expected a validated CursorProof configuration")
+    redactor = Redactor(secrets)
+
+    def sanitize(value: object, field: str | None = None) -> object:
+        if isinstance(value, dict):
+            if field == "headers":
+                return {
+                    name: "[REDACTED]" if _SENSITIVE.search(name) else item
+                    for name, item in value.items()
+                }
+            return {key: sanitize(item, key) for key, item in value.items()}
+        if isinstance(value, list):
+            return [sanitize(item) for item in value]
+        if isinstance(value, str):
+            if field == "url":
+                parts = urlsplit(value)
+                query = [
+                    (name, "[REDACTED]" if _SENSITIVE.search(name) else redactor.text(item))
+                    for name, item in parse_qsl(parts.query, keep_blank_values=True)
+                ]
+                value = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), ""))
+            return redactor.text(value)
+        return value
+
+    payload = sanitize(config.model_dump(mode="json"))
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()

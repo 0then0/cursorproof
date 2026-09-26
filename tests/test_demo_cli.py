@@ -4,10 +4,14 @@ import sys
 from http.server import HTTPServer
 from pathlib import Path
 from threading import Thread
+from unittest.mock import patch
 
+import httpx
 from typer.testing import CliRunner
 
 from cursorproof.cli import app
+from cursorproof.config import Config
+from cursorproof.runner import run
 
 
 def test_demo_run_and_offline_replay(tmp_path: Path, monkeypatch) -> None:
@@ -83,7 +87,7 @@ def test_demo_run_and_offline_replay(tmp_path: Path, monkeypatch) -> None:
                     ],
                 )
                 assert mismatch_replay.exit_code == 2
-                assert "do not match" in mismatch_replay.stdout
+                assert "does not match" in mismatch_replay.stdout
             else:
                 assert report["summary"]["unique_items"] == 40
     finally:
@@ -113,6 +117,40 @@ def test_cli_client_setup_error_is_safe_json(tmp_path: Path, monkeypatch) -> Non
     assert result.exit_code == 2
     assert "secret-nonexistent" not in result.stdout
     assert json.loads(result.stdout)["outcome"] == "error"
+
+
+def test_live_replay_rejects_changed_check_contract(tmp_path: Path) -> None:
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(
+            200,
+            json={"results": [{"id": 2}, {"id": 1}], "next_cursor": None},
+        )
+    )
+    original = Config.model_validate(
+        {
+            "url": "https://api.test/orders",
+            "limits": [2],
+            "ordering": [{"field": "id", "direction": "asc"}],
+        }
+    )
+    original_report = run(original, transport=transport)
+    assert "CP004" in {finding.code for finding in original_report.findings}
+    trace = tmp_path / "trace.json"
+    trace.write_text(original_report.trace.model_dump_json())
+    config = tmp_path / "config.json"
+    config.write_text(json.dumps({"url": "https://api.test/orders", "limits": [2], "ordering": []}))
+
+    with patch(
+        "cursorproof.cli.execute",
+        side_effect=lambda parsed, **kwargs: run(parsed, transport=transport),
+    ) as execute:
+        result = CliRunner().invoke(
+            app, ["replay", str(trace), "--config", str(config), "--format", "json"]
+        )
+
+    assert result.exit_code == 2
+    assert "contract does not match" in result.stdout
+    execute.assert_not_called()
 
 
 def test_check_never_executes_config_commands(tmp_path: Path) -> None:

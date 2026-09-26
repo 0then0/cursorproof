@@ -56,6 +56,7 @@ class MutationEvent(Model):
 class Trace(Model):
     schema_version: Literal[2] = 2
     tool_version: str
+    replay_fingerprint: str | None = None
     consistency: Literal["static", "snapshot", "live-keyset"]
     ordering_fields: list[str] = Field(default_factory=list)
     traversals: list[Traversal] = Field(min_length=1)
