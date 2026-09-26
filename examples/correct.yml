@@ -1,0 +1,17 @@
+url: http://127.0.0.1:8765/correct
+response:
+  items: $.results
+  next_cursor: $.next_cursor
+  has_more: $.has_more
+  id: $.id
+ordering:
+  - field: created_at
+    direction: desc
+    type: number
+  - field: id
+    direction: desc
+    type: number
+limits: [1, 5, 10, 11]
+repeats: 2
+oracle:
+  url: http://127.0.0.1:8765/oracle
