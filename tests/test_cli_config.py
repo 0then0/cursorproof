@@ -94,6 +94,76 @@ def test_replay_rejects_unsupported_trace(tmp_path: Path) -> None:
     assert json.loads(result.stdout)["outcome"] == "error"
 
 
+def legacy_trace(consistency: str = "static", bindings: list[dict[str, object]] | None = None):
+    return {
+        "schema_version": 1,
+        "tool_version": "0.1.0",
+        "consistency": consistency,
+        "ordering_fields": [],
+        "traversals": [
+            {
+                "limit": 1,
+                "repetition": 1,
+                "pages": [
+                    {
+                        "number": 1,
+                        "request": "https://api.test/orders?limit=1",
+                        "cursor": None,
+                        "next_cursor": None,
+                        "has_more": None,
+                        "status": 200,
+                        "items": [{"id": 1, "sort_key": None}],
+                    }
+                ],
+                "stop": "terminal",
+            }
+        ],
+        "oracle": None,
+        "oracle_ordered": True,
+        "bindings": bindings or [],
+        "mutations": [],
+        "errors": [],
+        "notes": [],
+    }
+
+
+def test_legacy_static_trace_is_migrated_to_schema_two(tmp_path: Path) -> None:
+    path = tmp_path / "legacy-static.json"
+    path.write_text(json.dumps(legacy_trace()))
+    result = runner.invoke(app, ["replay", str(path), "--format", "json"])
+    report = json.loads(result.stdout)
+    assert result.exit_code == 0
+    assert report["trace"]["schema_version"] == 2
+
+
+def test_legacy_snapshot_trace_is_incomplete_not_pass(tmp_path: Path) -> None:
+    path = tmp_path / "legacy-snapshot.json"
+    path.write_text(json.dumps(legacy_trace("snapshot")))
+    result = runner.invoke(app, ["replay", str(path), "--format", "json"])
+    report = json.loads(result.stdout)
+    assert result.exit_code == 2
+    assert report["outcome"] == "error"
+
+
+def test_legacy_binding_trace_is_incomplete_not_rejected_as_invalid_schema(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "legacy-binding.json"
+    binding = {
+        "parameter": "status",
+        "request": "https://api.test/orders?status=closed&cursor=cursor_1",
+        "cursor": "cursor_1",
+        "status": 422,
+        "accepted_rejection": True,
+    }
+    path.write_text(json.dumps(legacy_trace(bindings=[binding])))
+    result = runner.invoke(app, ["replay", str(path), "--format", "json"])
+    report = json.loads(result.stdout)
+    assert result.exit_code == 2
+    assert report["outcome"] == "error"
+    assert any("lacks a successful baseline" in issue["message"] for issue in report["errors"])
+
+
 def test_trace_cannot_overwrite_config(tmp_path: Path) -> None:
     path = tmp_path / "config.yml"
     original = "url: https://api.test\n"

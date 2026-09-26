@@ -72,7 +72,7 @@ limits: [1, 2, 5, 10, 50, 51, 100]
 repeats: 2
 consistency: static
 timeout: 10
-max_pages: 10000
+max_pages: 10001
 max_items: 100000
 max_response_bytes: 10000000
 ```
@@ -150,12 +150,12 @@ completeness**. Equal streams across limits can all omit the same records.
 complete ordered ID streams are compared across limits and repetitions. Set
 `repeats: 2` or more to test repeated traversal at each limit.
 
-`snapshot` requires an oracle and `response.snapshot_fields`. The oracle must return
-full JSON records, and selected fields are fingerprinted before traversal. CursorProof
-compares each returned record's selected fields with that initial oracle. This detects
-membership, order, and selected-content changes. It cannot create a shared database/API
-snapshot through generic HTTP, so the test environment must ensure the oracle represents
-the same snapshot, including the interval before the first page.
+`snapshot` requires an ordered oracle and `response.snapshot_fields: [$]`. The oracle
+must return full JSON records with the same shape as the API. CursorProof fingerprints
+each complete record before traversal and detects membership, order, or content changes.
+It cannot create a shared database/API snapshot through generic HTTP, so the test
+environment must ensure the oracle represents the same snapshot, including the interval
+before the first page.
 
 ```yaml
 consistency: snapshot
@@ -163,7 +163,7 @@ response:
   items: $.results
   next_cursor: $.next_cursor
   id: $.id
-  snapshot_fields: [$.created_at, $.status]
+  snapshot_fields: [$]
 oracle:
   url: http://localhost:8000/internal/orders/all
   items: $.results
@@ -183,7 +183,7 @@ between the specified page and the next page, in configuration order:
 consistency: snapshot
 limits: [5]
 response:
-  snapshot_fields: [$.created_at, $.status]
+  snapshot_fields: [$]
 oracle:
   url: http://localhost:8000/internal/orders/all
   items: $.results
@@ -271,6 +271,8 @@ cursorproof replay cursorproof-repro.json --config cursorproof.yml --traversal 2
 Live replay runs the selected limit once, without the other limits and repetitions.
 If the config contains mutation hooks, pass `--execute-hooks` to run those commands.
 They can change real data, so restore the test environment before replay.
+Trace schema version 2 migrates version 1 static traces. Older snapshot and cursor-binding
+traces replay as incomplete because they lack the evidence those checks now require.
 The versioned trace stores page boundaries, identity sequences, status codes,
 request descriptions, cursor aliases, and order-preserving ranks for sort values.
 It does not store full response bodies, headers, commands, or raw cursors.

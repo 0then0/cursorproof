@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 from cursorproof.config import Config
-from cursorproof.runner import run
+from cursorproof.runner import ExecutionError, command_output, run
 
 
 def config(**changes: object) -> Config:
@@ -77,6 +77,20 @@ def test_oracle_failure_is_incomplete_and_stops_before_http(
     assert not report.findings
 
 
+def test_oracle_command_output_is_stopped_at_byte_limit(tmp_path: Path) -> None:
+    command = [
+        sys.executable,
+        "-c",
+        "import sys,time\n"
+        "while True:\n"
+        " sys.stdout.write('x'*4096)\n"
+        " sys.stdout.flush()\n"
+        " time.sleep(.001)\n",
+    ]
+    with pytest.raises(ExecutionError, match="exceeded max_response_bytes"):
+        command_output(command, timeout=5, cwd=tmp_path, max_bytes=1024)
+
+
 @pytest.mark.parametrize(
     "command",
     [
@@ -95,7 +109,7 @@ def test_mutation_failure_stops_before_next_page(command: list[str], tmp_path: P
     report = run(
         config(
             consistency="snapshot",
-            response={"snapshot_fields": ["$.value"]},
+            response={"snapshot_fields": ["$"]},
             oracle={"command": [sys.executable, "-c", "print('[]')"]},
             mutations=[
                 {
@@ -136,7 +150,7 @@ def test_snapshot_oracle_detects_visibility_changes(
     report = run(
         config(
             consistency="snapshot",
-            response={"snapshot_fields": ["$.value"]},
+            response={"snapshot_fields": ["$"]},
             oracle={"url": "https://api.test/oracle", "items": "$", "id": "$.id"},
             mutations=[
                 {
@@ -169,7 +183,7 @@ def test_snapshot_detects_content_updates_with_same_identity() -> None:
     report = run(
         config(
             consistency="snapshot",
-            response={"snapshot_fields": ["$.status"]},
+            response={"snapshot_fields": ["$"]},
             oracle={"url": "https://api.test/oracle", "items": "$", "id": "$.id"},
         ),
         transport=httpx.MockTransport(handle),

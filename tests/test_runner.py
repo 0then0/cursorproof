@@ -7,7 +7,7 @@ from hypothesis import strategies as st
 
 from cursorproof.checks import analyze
 from cursorproof.config import Config
-from cursorproof.models import Trace
+from cursorproof.models import Item, Page, Trace, Traversal
 from cursorproof.runner import run
 
 
@@ -233,13 +233,94 @@ def test_missing_items_does_not_hide_shared_order_violation() -> None:
     assert missing.locations == []
 
 
+def test_oracle_order_mismatch_points_to_first_actual_boundary() -> None:
+    trace = Trace(
+        tool_version="test",
+        consistency="static",
+        oracle=[1, 2, 3],
+        traversals=[
+            Traversal(
+                limit=1,
+                pages=[
+                    Page(
+                        number=1,
+                        request="p1",
+                        cursor=None,
+                        next_cursor="A",
+                        items=[Item(id=1)],
+                    ),
+                    Page(
+                        number=2,
+                        request="p2",
+                        cursor="A",
+                        next_cursor="B",
+                        items=[Item(id=3)],
+                    ),
+                    Page(
+                        number=3,
+                        request="p3",
+                        cursor="B",
+                        next_cursor=None,
+                        items=[Item(id=2)],
+                    ),
+                ],
+                stop="terminal",
+            )
+        ],
+    )
+    finding = next(f for f in analyze(trace).findings if f.code == "CP004")
+    assert [location.page for location in finding.locations] == [2, 3]
+    assert finding.item_ids == [3, 2]
+
+
+def test_offline_trace_with_duplicate_oracle_ids_is_incomplete() -> None:
+    trace = Trace(
+        tool_version="test",
+        consistency="static",
+        oracle=[1, 1],
+        traversals=[
+            Traversal(
+                limit=1,
+                pages=[
+                    Page(
+                        number=1,
+                        request="p1",
+                        cursor=None,
+                        next_cursor=None,
+                        items=[Item(id=1)],
+                    )
+                ],
+                stop="terminal",
+            )
+        ],
+    )
+    report = analyze(trace)
+    assert report.exit_code == 2
+    assert any("duplicate identities" in issue.message for issue in report.errors)
+
+
 def test_snapshot_requires_oracle_and_fields() -> None:
     with pytest.raises(ValueError, match="requires an oracle"):
         config(consistency="snapshot")
     with pytest.raises(ValueError, match="snapshot_fields"):
         config(consistency="snapshot", oracle={"url": "https://api.test/oracle"})
     with pytest.raises(ValueError, match="only valid with snapshot"):
-        config(response={"snapshot_fields": ["$.status"]})
+        config(response={"snapshot_fields": ["$"]})
+    with pytest.raises(ValueError, match=r"\['\$'\]"):
+        config(
+            consistency="snapshot",
+            response={"snapshot_fields": ["$.status"]},
+            oracle={"url": "https://api.test/oracle"},
+        )
+
+
+def test_snapshot_rejects_unordered_oracle_even_when_api_reorders() -> None:
+    with pytest.raises(ValueError, match="ordered oracle"):
+        config(
+            consistency="snapshot",
+            response={"snapshot_fields": ["$"]},
+            oracle={"url": "https://api.test/oracle", "ordered": False},
+        )
 
 
 def test_oracle_unordered_and_duplicates() -> None:
@@ -339,6 +420,47 @@ def test_invalid_binding_alternative_does_not_count_as_rejection() -> None:
     assert any("invalid without a cursor" in error.message for error in report.errors)
 
 
+def test_binding_requires_valid_pagination_body_for_baseline() -> None:
+    def handle(request: httpx.Request) -> httpx.Response:
+        if request.url.params["status"] == "closed":
+            if "cursor" in request.url.params:
+                pytest.fail("A cursor probe must not follow an invalid baseline")
+            return httpx.Response(200, text="not a pagination response")
+        return httpx.Response(
+            200,
+            json=page([1], "A") if "cursor" not in request.url.params else page([2]),
+        )
+
+    report = run(
+        config(
+            parameters={"status": "open"},
+            cursor_binding={"parameters": {"status": ["closed"]}},
+        ),
+        transport=httpx.MockTransport(handle),
+    )
+    assert report.exit_code == 2
+    assert "CP007" not in codes(report)
+    assert any("invalid pagination response" in issue.message for issue in report.errors)
+
+
+def test_offline_trace_cannot_drop_all_configured_binding_evidence() -> None:
+    trace = Trace(
+        tool_version="test",
+        consistency="static",
+        binding_cases_expected=1,
+        traversals=[
+            Traversal(
+                limit=1,
+                pages=[Page(number=1, request="p1", cursor=None, next_cursor=None, items=[])],
+                stop="terminal",
+            )
+        ],
+    )
+    report = analyze(trace)
+    assert report.exit_code == 2
+    assert any("all configured binding cases" in issue.message for issue in report.errors)
+
+
 def test_default_page_budget_handles_over_one_thousand_items() -> None:
     def handle(request: httpx.Request) -> httpx.Response:
         limit = int(request.url.params["limit"])
@@ -352,6 +474,51 @@ def test_default_page_budget_handles_over_one_thousand_items() -> None:
     report = run(config(limits=[1]), transport=httpx.MockTransport(handle))
     assert report.exit_code == 0
     assert report.summary.pages == 1001
+    assert config().max_pages == 10_001
+
+
+def test_default_page_budget_allows_ten_thousand_items_and_terminal_page() -> None:
+    def handle(request: httpx.Request) -> httpx.Response:
+        start = int(request.url.params.get("cursor", "0"))
+        if start == 10_000:
+            return httpx.Response(200, json=page([]))
+        return httpx.Response(200, json=page([start], str(start + 1)))
+
+    report = run(config(limits=[1]), transport=httpx.MockTransport(handle))
+    assert report.exit_code == 0
+    assert report.summary.items == 10_000
+    assert report.summary.pages == 10_001
+
+
+def test_missing_boundary_with_equal_primary_sort_key_suggests_tie_breaker() -> None:
+    oracle = [
+        {"id": 1, "group": 10},
+        {"id": 2, "group": 10},
+        {"id": 3, "group": 10},
+        {"id": 4, "group": 10},
+    ]
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/oracle":
+            return httpx.Response(200, json=oracle)
+        if "cursor" not in request.url.params:
+            return httpx.Response(
+                200,
+                json={"results": [oracle[0]], "next_cursor": "A"},
+            )
+        return httpx.Response(200, json={"results": [oracle[3]], "next_cursor": None})
+
+    report = run(
+        config(
+            limits=[1],
+            ordering=[{"field": "group", "type": "number"}],
+            oracle={"url": "https://api.test/oracle", "items": "$", "id": "$.id"},
+        ),
+        transport=httpx.MockTransport(handle),
+    )
+    missing = next(f for f in report.findings if f.code == "CP003")
+    assert missing.possible_cause == "Non-unique ordering around the missing-item boundary"
+    assert [location.page for location in missing.locations] == [1, 2]
 
 
 def test_secrets_and_raw_cursor_not_in_report() -> None:
@@ -378,6 +545,16 @@ def test_secrets_and_raw_cursor_not_in_report() -> None:
     assert analyze(Trace.model_validate_json(report.trace.model_dump_json())) == report
 
 
+def test_auth_query_parameter_is_redacted_from_trace() -> None:
+    secret = "literal-auth-secret"
+    report = run(
+        config(url=f"https://api.test/orders?auth={secret}"),
+        transport=httpx.MockTransport(lambda request: httpx.Response(200, json=page([]))),
+    )
+    assert secret not in report.model_dump_json()
+    assert "auth=%5BREDACTED%5D" in report.trace.traversals[0].pages[0].request
+
+
 def test_mutation_hook_runs_between_pages(tmp_path: Path) -> None:
     import sys
 
@@ -395,7 +572,7 @@ def test_mutation_hook_runs_between_pages(tmp_path: Path) -> None:
     report = run(
         config(
             consistency="snapshot",
-            response={"snapshot_fields": ["$.value"]},
+            response={"snapshot_fields": ["$"]},
             oracle={"url": "https://api.test/oracle", "items": "$", "id": "$.id"},
             mutations=[
                 {
@@ -421,7 +598,7 @@ def test_unreached_mutation_is_incomplete() -> None:
     report = run(
         config(
             consistency="snapshot",
-            response={"snapshot_fields": ["$.value"]},
+            response={"snapshot_fields": ["$"]},
             oracle={"command": [sys.executable, "-c", "print('[]')"]},
             mutations=[
                 {

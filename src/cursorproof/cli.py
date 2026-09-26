@@ -5,6 +5,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
 
+import httpx
 import typer
 from pydantic import ValidationError
 from rich.console import Console
@@ -12,7 +13,9 @@ from rich.console import Console
 from cursorproof import __version__
 from cursorproof.checks import analyze
 from cursorproof.config import ConfigError, load_config
-from cursorproof.models import Report, Trace
+from cursorproof.models import Report, Trace, parse_trace
+from cursorproof.privacy import Redactor
+from cursorproof.runner import build_request
 from cursorproof.runner import run as execute
 
 app = typer.Typer(
@@ -161,13 +164,16 @@ def replay(
 ) -> None:
     """Replay recorded evidence offline, or reissue one traversal with --config."""
     try:
-        recorded = Trace.model_validate_json(trace.read_bytes())
+        recorded = parse_trace(trace.read_bytes())
     except (OSError, ValidationError, ValueError):
         fail("Cannot read trace or unsupported/invalid trace schema", output_format)
         return
     if config is None:
         if execute_hooks:
             fail("--execute-hooks requires --config", output_format)
+            return
+        if traversal_number > 1:
+            fail("--traversal requires --config", output_format)
             return
         report = analyze(recorded)
     else:
@@ -182,6 +188,28 @@ def replay(
         if parsed.consistency != recorded.consistency:
             fail("Replay configuration consistency does not match the saved trace", output_format)
             return
+        selected = recorded.traversals[traversal_number - 1]
+        if not selected.pages:
+            fail("Selected traversal has no recorded request to match", output_format)
+            return
+        request_params = {
+            **parsed.parameters,
+            parsed.pagination.limit_param: selected.limit,
+        }
+        with httpx.Client(headers=parsed.headers, follow_redirects=False) as client:
+            request = build_request(client, parsed.url, request_params)
+        redaction_secrets = set(secrets) | set(parsed.headers.values())
+        if parsed.oracle:
+            redaction_secrets.update(parsed.oracle.headers.values())
+        current_request = Redactor(redaction_secrets).url(
+            str(request.url), parsed.pagination.cursor_param
+        )
+        if current_request != selected.pages[0].request:
+            fail(
+                "Replay configuration URL or query parameters do not match the saved traversal",
+                output_format,
+            )
+            return
         has_commands = bool(parsed.mutations) or bool(parsed.oracle and parsed.oracle.command)
         if has_commands and not execute_hooks:
             fail(
@@ -195,7 +223,6 @@ def replay(
                 output_format,
             )
             return
-        selected = recorded.traversals[traversal_number - 1]
         replay_config = parsed.model_copy(
             update={
                 "limits": [selected.limit],

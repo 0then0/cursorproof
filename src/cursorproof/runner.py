@@ -1,8 +1,10 @@
 import hashlib
 import json
 import math
+import os
 import subprocess
 import tempfile
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -108,6 +110,34 @@ def content_fingerprint(item: object, fields: list[str]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def validate_binding_baseline(body: bytes, config: Config, limit: int) -> None:
+    payload = decode_json(body)
+    values = extract(payload, config.response.items)
+    raw_cursor = extract(payload, config.response.next_cursor)
+    if not isinstance(values, list) or len(values) > limit:
+        raise ExecutionError("Changed query returned an invalid item list")
+    if raw_cursor is not None and not isinstance(raw_cursor, str):
+        raise ExecutionError("Changed query returned an invalid cursor")
+    if raw_cursor is None and None not in config.pagination.terminal_values:
+        raise ExecutionError("Changed query returned an undeclared terminal cursor")
+    next_cursor = None if raw_cursor in config.pagination.terminal_values else raw_cursor
+    has_more = (
+        extract(payload, config.response.has_more) if config.response.has_more is not None else None
+    )
+    if config.response.has_more is not None and type(has_more) is not bool:
+        raise ExecutionError("Changed query returned an invalid has_more value")
+    if has_more is not None and has_more != (next_cursor is not None):
+        raise ExecutionError("Changed query returned inconsistent termination data")
+    rows = [
+        RawItem(
+            item=Item(id=identity(extract(value, config.response.id))),
+            values=[sort_value(extract(value, field.field), field) for field in config.ordering],
+        )
+        for value in values
+    ]
+    assign_ranks(rows, config.ordering)
+
+
 def fetch(client: httpx.Client, request: httpx.Request, max_bytes: int) -> tuple[int, bytes]:
     try:
         response = client.send(request, stream=True)
@@ -127,23 +157,39 @@ def fetch(client: httpx.Client, request: httpx.Request, max_bytes: int) -> tuple
 def command_output(command: list[str], timeout: float, cwd: Path, max_bytes: int) -> bytes:
     try:
         with tempfile.TemporaryFile() as output:
-            result = subprocess.run(
+            process = subprocess.Popen(
                 command,
                 cwd=cwd,
                 stdin=subprocess.DEVNULL,
                 stdout=output,
                 stderr=subprocess.DEVNULL,
-                timeout=timeout,
-                check=False,
             )
-            if result.returncode != 0:
+            deadline = time.monotonic() + timeout
+            try:
+                while process.poll() is None:
+                    if os.fstat(output.fileno()).st_size > max_bytes:
+                        process.kill()
+                        process.wait()
+                        raise ExecutionError("Oracle output exceeded max_response_bytes")
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        process.kill()
+                        process.wait()
+                        raise ExecutionError("Oracle command could not execute or timed out")
+                    time.sleep(min(0.01, remaining))
+            except BaseException:
+                if process.poll() is None:
+                    process.kill()
+                    process.wait()
+                raise
+            if os.fstat(output.fileno()).st_size > max_bytes:
+                raise ExecutionError("Oracle output exceeded max_response_bytes")
+            if process.returncode != 0:
                 raise ExecutionError("Oracle command failed")
             output.seek(0)
             body = output.read(max_bytes + 1)
-            if len(body) > max_bytes:
-                raise ExecutionError("Oracle output exceeded max_response_bytes")
             return body
-    except (OSError, subprocess.TimeoutExpired):
+    except OSError:
         raise ExecutionError("Oracle command could not execute or timed out") from None
 
 
@@ -228,7 +274,14 @@ def probe_binding(
                 config.pagination.limit_param: limit,
             }
             request = build_request(client, config.url, params)
-            status, _ = fetch(client, request, config.max_response_bytes)
+            status, body = fetch(client, request, config.max_response_bytes)
+            valid = False
+            if 200 <= status < 300:
+                try:
+                    validate_binding_baseline(body, config, limit)
+                    valid = True
+                except (ExecutionError, ValueError):
+                    pass
             trace.bindings.append(
                 BindingObservation(
                     parameter=redactor.text(name),
@@ -236,9 +289,10 @@ def probe_binding(
                     phase="baseline",
                     request=redactor.url(str(request.url), config.pagination.cursor_param),
                     status=status,
+                    valid=valid,
                 )
             )
-            if not 200 <= status < 300:
+            if not valid:
                 continue
             cursor_params = {**params, config.pagination.cursor_param: cursor}
             cursor_request = build_request(client, config.url, cursor_params)
@@ -378,6 +432,11 @@ def run(
         ordering_fields=[redactor.text(field.field) for field in config.ordering],
         binding_reject_statuses=(
             config.cursor_binding.reject_statuses if config.cursor_binding else [400, 409, 422]
+        ),
+        binding_cases_expected=(
+            sum(len(values) for values in config.cursor_binding.parameters.values())
+            if config.cursor_binding
+            else 0
         ),
         traversals=[
             Traversal(limit=limit, repetition=repetition)

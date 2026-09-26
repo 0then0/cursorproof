@@ -4,7 +4,11 @@ from uuid import uuid4
 
 from cursorproof.config import Identity
 
-_SENSITIVE = re.compile(r"token|secret|password|authorization|api[_-]?key|credential", re.I)
+_SENSITIVE = re.compile(
+    r"token|secret|password|authorization|auth|api[_-]?key|access[_-]?key|"
+    r"credential|signature|(^|[_-])sig($|[_-])|session|cookie|jwt",
+    re.I,
+)
 
 
 class Redactor:

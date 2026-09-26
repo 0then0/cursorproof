@@ -40,6 +40,7 @@ class BindingObservation(Model):
     request: str
     cursor: str | None = None
     status: int
+    valid: bool = True
 
 
 class Issue(Model):
@@ -53,7 +54,7 @@ class MutationEvent(Model):
 
 
 class Trace(Model):
-    schema_version: Literal[1] = 1
+    schema_version: Literal[2] = 2
     tool_version: str
     consistency: Literal["static", "snapshot", "live-keyset"]
     ordering_fields: list[str] = Field(default_factory=list)
@@ -62,6 +63,7 @@ class Trace(Model):
     oracle_ordered: bool = True
     oracle_snapshot: list[SnapshotItem] | None = None
     binding_reject_statuses: list[int] = Field(default_factory=lambda: [400, 409, 422])
+    binding_cases_expected: int = Field(default=0, ge=0)
     bindings: list[BindingObservation] = Field(default_factory=list)
     mutations: list[MutationEvent] = Field(default_factory=list)
     errors: list[Issue] = Field(default_factory=list)
@@ -94,7 +96,7 @@ class Summary(Model):
 
 
 class Report(Model):
-    schema_version: Literal[1] = 1
+    schema_version: Literal[2] = 2
     outcome: Literal["pass", "fail", "error"]
     summary: Summary
     findings: list[Finding]
@@ -105,3 +107,27 @@ class Report(Model):
     @property
     def exit_code(self) -> int:
         return {"pass": 0, "fail": 1, "error": 2}[self.outcome]
+
+
+def parse_trace(data: bytes) -> Trace:
+    import json
+
+    value = json.loads(data)
+    if not isinstance(value, dict):
+        raise ValueError("Trace must be a JSON object")
+    version = value.get("schema_version")
+    if version is None:
+        raise ValueError("Trace schema version is missing")
+    if type(version) is int and version == 1:
+        legacy = dict(value)
+        legacy["schema_version"] = 2
+        legacy["bindings"] = []
+        errors = list(legacy.get("errors", []))
+        if legacy.get("consistency") == "snapshot":
+            errors.append({"message": "Legacy snapshot trace lacks full-record snapshot evidence"})
+        if value.get("bindings"):
+            errors.append({"message": "Legacy binding trace lacks a successful baseline response"})
+            legacy["binding_cases_expected"] = len(value["bindings"])
+        legacy["errors"] = errors
+        return Trace.model_validate(legacy)
+    return Trace.model_validate(value)

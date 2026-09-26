@@ -162,7 +162,7 @@ class Config(Model):
     limits: list[Positive] = Field(default_factory=lambda: [1, 10, 50, 51, 100], min_length=1)
     repeats: Positive = 1
     timeout: float = Field(default=10.0, gt=0)
-    max_pages: Positive = 10_000
+    max_pages: Positive = 10_001
     max_items: Positive = 100_000
     max_response_bytes: Positive = 10_000_000
     consistency: Literal["static", "snapshot", "live-keyset"] = "static"
@@ -189,10 +189,12 @@ class Config(Model):
         if self.consistency == "snapshot" and self.oracle is None:
             raise ValueError("Snapshot consistency requires an oracle for the initial item stream")
         if self.consistency == "snapshot":
-            if not self.response.snapshot_fields:
-                raise ValueError("Snapshot consistency requires response.snapshot_fields")
+            if self.response.snapshot_fields != ["$"]:
+                raise ValueError("Snapshot consistency requires response.snapshot_fields: ['$']")
             if self.oracle and self.oracle.format == "lines":
                 raise ValueError("Snapshot oracle must return JSON records, not ID lines")
+            if self.oracle and not self.oracle.ordered:
+                raise ValueError("Snapshot consistency requires an ordered oracle")
         elif self.response.snapshot_fields:
             raise ValueError("response.snapshot_fields is only valid with snapshot consistency")
         if self.consistency == "live-keyset":

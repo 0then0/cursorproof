@@ -68,6 +68,22 @@ def test_demo_run_and_offline_replay(tmp_path: Path, monkeypatch) -> None:
                 )
                 assert live_replay.exit_code == 1
                 assert json.loads(live_replay.stdout)["summary"]["traversals"] == 1
+                mismatched = json.loads(broken_config.read_text())
+                mismatched["url"] = "http://127.0.0.1:1/different"
+                broken_config.write_text(json.dumps(mismatched))
+                mismatch_replay = runner.invoke(
+                    app,
+                    [
+                        "replay",
+                        str(broken_trace),
+                        "--config",
+                        str(broken_config),
+                        "--format",
+                        "json",
+                    ],
+                )
+                assert mismatch_replay.exit_code == 2
+                assert "do not match" in mismatch_replay.stdout
             else:
                 assert report["summary"]["unique_items"] == 40
     finally:
@@ -108,7 +124,7 @@ def test_check_never_executes_config_commands(tmp_path: Path) -> None:
                 "url": "http://127.0.0.1:1/",
                 "limits": [1],
                 "consistency": "snapshot",
-                "response": {"snapshot_fields": ["$.value"]},
+                "response": {"snapshot_fields": ["$"]},
                 "oracle": {
                     "command": [sys.executable, "-c", f"open({str(marker)!r}, 'w').close()"]
                 },
@@ -140,7 +156,7 @@ def test_live_replay_requires_opt_in_before_mutation_hooks(tmp_path: Path) -> No
                 "url": "http://127.0.0.1:1/orders",
                 "limits": [5],
                 "consistency": "snapshot",
-                "response": {"snapshot_fields": ["$.id"]},
+                "response": {"snapshot_fields": ["$"]},
                 "oracle": {"command": [sys.executable, "-c", "print('[]')"]},
                 "mutations": [
                     {

@@ -17,11 +17,28 @@ def identity_key(value: Identity) -> tuple[type[str] | type[int], Identity]:
 def analyze(trace: Trace) -> Report:
     findings: list[Finding] = []
     errors = list(trace.errors)
+    if trace.consistency == "snapshot":
+        if trace.oracle is None or trace.oracle_snapshot is None:
+            errors.append(Issue(message="Snapshot trace lacks its initial full-record oracle"))
+        elif not trace.oracle_ordered:
+            errors.append(Issue(message="Snapshot trace requires an ordered oracle"))
+        elif [identity_key(row.id) for row in trace.oracle_snapshot] != [
+            identity_key(value) for value in trace.oracle
+        ]:
+            errors.append(Issue(message="Snapshot fingerprints do not match the oracle identities"))
+        if any(
+            item.fingerprint is None
+            for run in trace.traversals
+            for page in run.pages
+            for item in page.items
+        ):
+            errors.append(Issue(message="Snapshot trace is missing a full-record fingerprint"))
     complete: list[tuple[int, list[Identity]]] = []
     all_ids: set[tuple[type[str] | type[int], Identity]] = set()
     total_items = 0
     for run_number, traversal in enumerate(trace.traversals, 1):
         seen_items: dict[tuple[type[str] | type[int], Identity], Location] = {}
+        seen_sort_keys: dict[tuple[type[str] | type[int], Identity], list[int] | None] = {}
         seen_cursors: dict[str, int] = {}
         previous: tuple[list[int], Location, Identity] | None = None
         stream: list[Identity] = []
@@ -69,6 +86,7 @@ def analyze(trace: Trace) -> Report:
                     )
                 else:
                     seen_items[key] = location
+                    seen_sort_keys[key] = item.sort_key
                 if trace.ordering_fields:
                     if item.sort_key is None or len(item.sort_key) != len(trace.ordering_fields):
                         errors.append(
@@ -139,6 +157,9 @@ def analyze(trace: Trace) -> Report:
             complete.append((run_number, stream))
             if trace.oracle is not None:
                 expected = {identity_key(item) for item in trace.oracle}
+                if len(expected) != len(trace.oracle):
+                    errors.append(Issue(message="Trace oracle contains duplicate identities"))
+                    continue
                 actual = {identity_key(item) for item in stream}
                 missing = [item for item in trace.oracle if identity_key(item) not in actual]
                 extra = [item for item in stream if identity_key(item) not in expected]
@@ -197,12 +218,22 @@ def analyze(trace: Trace) -> Report:
                     if trace.oracle_ordered and not order_mismatch:
                         group: list[Identity] = []
                         left: Location | None = None
+                        left_key: tuple[type[str] | type[int], Identity] | None = None
                         for expected_id in trace.oracle:
-                            right = seen_items.get(identity_key(expected_id))
+                            expected_key = identity_key(expected_id)
+                            right = seen_items.get(expected_key)
                             if right is None:
                                 group.append(expected_id)
                                 continue
                             if group:
+                                right_sort_key = seen_sort_keys.get(expected_key)
+                                left_sort_key = seen_sort_keys.get(left_key) if left_key else None
+                                tie_possible = bool(
+                                    trace.ordering_fields
+                                    and left_sort_key
+                                    and right_sort_key
+                                    and left_sort_key[0] == right_sort_key[0]
+                                )
                                 findings.append(
                                     Finding(
                                         code="CP003",
@@ -211,10 +242,16 @@ def analyze(trace: Trace) -> Report:
                                         locations=([left] if left else []) + [right],
                                         item_ids=group[:20],
                                         count=len(group),
+                                        possible_cause=(
+                                            "Non-unique ordering around the missing-item boundary"
+                                            if tie_possible
+                                            else None
+                                        ),
                                     )
                                 )
                                 group = []
                             left = right
+                            left_key = expected_key
                         if group:
                             findings.append(
                                 Finding(
@@ -261,12 +298,25 @@ def analyze(trace: Trace) -> Report:
                         )
                     )
                 if order_mismatch:
+                    first_difference = next(
+                        index
+                        for index, (expected_id, actual_id) in enumerate(
+                            zip(expected_common, actual_common, strict=True)
+                        )
+                        if identity_key(expected_id) != identity_key(actual_id)
+                    )
+                    actual_id = actual_common[first_difference]
+                    expected_id = expected_common[first_difference]
                     findings.append(
                         Finding(
                             code="CP004",
                             name="ORACLE_ORDER_MISMATCH",
                             message="The relative order of oracle items differs from the oracle.",
-                            locations=[Location(traversal=run_number, page=1)],
+                            locations=[
+                                seen_items[identity_key(actual_id)],
+                                seen_items[identity_key(expected_id)],
+                            ],
+                            item_ids=[actual_id, expected_id],
                         )
                     )
 
@@ -292,6 +342,9 @@ def analyze(trace: Trace) -> Report:
     bindings: dict[int, list[BindingObservation]] = {}
     for binding in trace.bindings:
         bindings.setdefault(binding.case, []).append(binding)
+    expected_binding_cases = set(range(1, trace.binding_cases_expected + 1))
+    if set(bindings) != expected_binding_cases:
+        errors.append(Issue(message="Trace does not contain all configured binding cases"))
     for observations in bindings.values():
         baselines = [item for item in observations if item.phase == "baseline"]
         cursor_probes = [item for item in observations if item.phase == "cursor"]
@@ -301,6 +354,9 @@ def analyze(trace: Trace) -> Report:
         baseline_observation = baselines[0]
         if not 200 <= baseline_observation.status < 300:
             errors.append(Issue(message="Changed query is invalid without a cursor"))
+            continue
+        if not baseline_observation.valid:
+            errors.append(Issue(message="Changed query returned an invalid pagination response"))
             continue
         if len(cursor_probes) != 1:
             errors.append(Issue(message="Binding probe lacks its cursor request"))
