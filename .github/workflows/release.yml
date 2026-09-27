@@ -10,6 +10,11 @@ on:
         description: Existing version tag to release
         required: true
         type: string
+      publish_to_pypi:
+        description: Publish the selected tag to PyPI
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -51,13 +56,32 @@ jobs:
       - name: Verify wheel and source distribution
         run: |
           uv run python - <<'PY'
+          import tomllib
+          from email.parser import Parser
           from pathlib import Path
+          from zipfile import ZipFile
 
           distributions = list(Path('dist').iterdir())
           wheels = [path for path in distributions if path.name.endswith('.whl')]
           source_distributions = [path for path in distributions if path.name.endswith('.tar.gz')]
           if len(wheels) != 1 or len(source_distributions) != 1:
               raise SystemExit(f'Expected one wheel and one sdist, found: {distributions!r}')
+
+          with Path('pyproject.toml').open('rb') as project_file:
+              project = tomllib.load(project_file)['project']
+          with ZipFile(wheels[0]) as wheel:
+              metadata_paths = [
+                  path for path in wheel.namelist()
+                  if path.endswith('.dist-info/METADATA')
+              ]
+              if len(metadata_paths) != 1:
+                  raise SystemExit(f'Expected one wheel METADATA file, found: {metadata_paths!r}')
+              metadata = Parser().parsestr(wheel.read(metadata_paths[0]).decode('utf-8'))
+          if metadata.get('Name') != project['name'] or metadata.get('Version') != project['version']:
+              raise SystemExit(
+                  'Wheel metadata does not match pyproject.toml: '
+                  f'Name={metadata.get("Name")!r}, Version={metadata.get("Version")!r}'
+              )
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -97,7 +121,7 @@ jobs:
 
   pypi-publish:
     needs: build
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish_to_pypi)
     runs-on: ubuntu-26.04
     environment:
       name: pypi
@@ -110,4 +134,4 @@ jobs:
           name: release-distributions
           path: dist
       - name: Publish distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@ec4db0b4ddc65acdf4bff5fa45ac92d78b56bdf0 # v1.9.0
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
