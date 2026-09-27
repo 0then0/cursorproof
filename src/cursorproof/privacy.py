@@ -115,7 +115,7 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str:
                 }
             return {key: sanitize(item, key) for key, item in value.items()}
         if isinstance(value, list):
-            if field == "command":
+            if field in {"command", "setup", "cleanup"}:
                 return sanitize_command(value, secrets or set())
             return [sanitize(item) for item in value]
         if isinstance(value, str):
@@ -167,8 +167,11 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object]:
 
 
 def sanitize_command_url(value: str) -> str:
+    option = re.fullmatch(r"(--[A-Za-z0-9_-]+=)(.*)", value)
+    prefix = option.group(1) if option else ""
+    url = option.group(2) if option else value
     try:
-        parts = urlsplit(value)
+        parts = urlsplit(url)
         if not parts.scheme or not parts.hostname:
             return value
         port = parts.port
@@ -182,4 +185,5 @@ def sanitize_command_url(value: str) -> str:
         (name, "[REDACTED]" if is_sensitive_name(name) else item)
         for name, item in parse_qsl(parts.query, keep_blank_values=True)
     ]
-    return urlunsplit((parts.scheme, netloc, parts.path, urlencode(query), ""))
+    safe_url = urlunsplit((parts.scheme, netloc, parts.path, urlencode(query), ""))
+    return prefix + safe_url

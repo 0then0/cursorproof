@@ -199,9 +199,27 @@ mutations:
 
 Hooks on a terminal page do not execute. An unreachable hook, command failure,
 timeout, or traversal budget produces an incomplete/error result. Hooks execute
-real commands: run these configurations against controlled test environments.
-There is no automatic dataset reset, fixture generation, or scenario shrinking.
+real commands: run these configurations against controlled test environments. A
+timeout stops the command's process group; commands must not leave detached descendants.
+There is no built-in dataset reset adapter or scenario shrinking. The opt-in
+boundary command below uses fixture commands supplied by the API owner.
 Hypothesis is used to test CursorProof's own invariants and boundary cases.
+
+For API cardinality boundaries, opt in to fixture commands:
+
+```yaml
+boundary_testing:
+  setup: [python, fixtures.py, set-count, "{count}"]
+  cleanup: [python, fixtures.py, reset]
+  timeout: 30
+```
+
+Run `cursorproof boundary cursorproof.yml`. For each configured limit, it prepares
+0, 1, `limit - 1`, `limit`, `limit + 1`, `2 * limit`, and `2 * limit + 1` records,
+deduplicating repeated sizes. The `{count}` placeholder is replaced with the target
+size. Each case gets a fresh traversal and oracle read; cleanup runs after every case.
+The fixture commands must create exactly the requested population and restore a safe
+state when cleanup runs. Boundary tests execute real commands and can change data.
 
 ## Cursor binding
 

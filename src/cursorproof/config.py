@@ -124,6 +124,20 @@ class Mutation(Command):
     after_page: Positive
 
 
+class BoundaryTesting(Model):
+    setup: list[str] = Field(min_length=1)
+    cleanup: list[str] = Field(min_length=1)
+    timeout: float = Field(default=30.0, gt=0)
+
+    @model_validator(mode="after")
+    def commands(self) -> Self:
+        Command(command=self.setup, timeout=self.timeout)
+        Command(command=self.cleanup, timeout=self.timeout)
+        if not any("{count}" in argument for argument in self.setup):
+            raise ValueError("Boundary setup command must include the {count} placeholder")
+        return self
+
+
 class Oracle(Model):
     url: str | None = None
     command: list[str] | None = None
@@ -182,6 +196,7 @@ class Config(Model):
     oracle: Oracle | None = None
     mutations: list[Mutation] = Field(default_factory=list)
     cursor_binding: Binding | None = None
+    boundary_testing: BoundaryTesting | None = None
 
     _url = field_validator("url")(http_url)
     _headers = field_validator("headers")(http_headers)
@@ -196,6 +211,12 @@ class Config(Model):
             raise ValueError("Cursor and limit belong in pagination/limits, not URL or parameters")
         if self.mutations and self.consistency == "static":
             raise ValueError("Mutation hooks require snapshot or live-keyset consistency")
+        if self.boundary_testing:
+            if self.mutations:
+                raise ValueError("Boundary testing cannot use mutation hooks")
+            largest_case = max(2 * limit + 1 for limit in self.limits)
+            if largest_case > self.max_items:
+                raise ValueError("Boundary test sizes must not exceed max_items")
         if self.consistency != "static" and (len(self.limits) != 1 or self.repeats != 1):
             raise ValueError("Mutation modes require one limit and one traversal")
         if self.consistency == "snapshot" and self.oracle is None:

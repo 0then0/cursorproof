@@ -99,6 +99,73 @@ def test_demo_run_and_offline_replay(tmp_path: Path, monkeypatch) -> None:
     assert any(finding["code"] == "CP003" for finding in json.loads(result.stdout)["findings"])
 
 
+def test_boundary_cli_runs_fixture_scenarios_and_cleans_up(tmp_path: Path) -> None:
+    marker = tmp_path / "fixture-count"
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            count = int(marker.read_text())
+            ids = list(range(count))
+            limit = int(self.path.split("limit=")[1].split("&")[0])
+            cursor = None
+            if "cursor=" in self.path:
+                cursor = int(self.path.split("cursor=")[1].split("&")[0])
+            offset = cursor or 0
+            items = ids[offset : offset + limit]
+            next_offset = offset + limit
+            next_cursor = str(next_offset) if next_offset < len(ids) else None
+            body = json.dumps(
+                {"results": [{"id": item} for item in items], "next_cursor": next_cursor}
+            ).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, format: str, *args: object) -> None:
+            pass
+
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    thread = Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
+    thread.start()
+    config = tmp_path / "boundary.json"
+    config.write_text(
+        json.dumps(
+            {
+                "url": f"http://127.0.0.1:{server.server_port}/orders",
+                "limits": [2],
+                "boundary_testing": {
+                    "setup": [
+                        sys.executable,
+                        "-c",
+                        "import sys; from pathlib import Path; "
+                        "Path('fixture-count').write_text(sys.argv[1])",
+                        "{count}",
+                    ],
+                    "cleanup": [
+                        sys.executable,
+                        "-c",
+                        "from pathlib import Path; Path('fixture-count').unlink(missing_ok=True)",
+                    ],
+                },
+            }
+        )
+    )
+    try:
+        result = CliRunner().invoke(app, ["boundary", str(config), "--format", "json"])
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+    assert result.exit_code == 0, result.stdout
+    report = json.loads(result.stdout)
+    assert report["outcome"] == "pass"
+    assert [case["expected_items"] for case in report["cases"]] == [0, 1, 2, 3, 4, 5]
+    assert not marker.exists()
+
+
 def test_cli_client_setup_error_is_safe_json(tmp_path: Path, monkeypatch) -> None:
     config = tmp_path / "config.json"
     config.write_text(json.dumps({"url": "https://api.test", "limits": [1]}))

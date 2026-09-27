@@ -15,7 +15,7 @@ from cursorproof.checks import analyze
 from cursorproof.config import ConfigError, load_config
 from cursorproof.models import Report, Trace, parse_trace
 from cursorproof.privacy import Redactor, replay_fingerprint
-from cursorproof.runner import build_request
+from cursorproof.runner import build_request, run_boundaries
 from cursorproof.runner import run as execute
 
 app = typer.Typer(
@@ -133,6 +133,8 @@ def run(
     except ConfigError as exc:
         fail(str(exc), output_format)
         return
+    if parsed.boundary_testing is not None:
+        fail("This configuration requires the boundary command", output_format)
     try:
         report = execute(parsed, cwd=config.resolve().parent, secrets=secrets)
     except (OSError, ValueError):
@@ -143,6 +145,42 @@ def run(
     except OSError:
         fail("Cannot write reproduction trace", output_format)
     display(report, output_format)
+    raise typer.Exit(report.exit_code)
+
+
+@app.command()
+def boundary(
+    config: Annotated[Path, typer.Argument(help="YAML or JSON configuration.")],
+    output_format: Annotated[Format, typer.Option("--format")] = Format.text,
+) -> None:
+    """Run API traversals with fixture sizes around each configured limit."""
+    try:
+        parsed, secrets = load_config(config)
+    except ConfigError as exc:
+        fail(str(exc), output_format)
+        return
+    if parsed.boundary_testing is None:
+        fail("Configuration must define boundary_testing setup and cleanup commands", output_format)
+    try:
+        report = run_boundaries(parsed, cwd=config.resolve().parent, secrets=secrets)
+    except (OSError, ValueError):
+        fail("Cannot initialize boundary tests", output_format)
+        return
+    if output_format == Format.json:
+        typer.echo(report.model_dump_json(indent=2))
+    else:
+        console = Console(markup=False, highlight=False)
+        console.print(f"CursorProof boundary: {report.outcome.upper()}")
+        for case in report.cases:
+            observed = "not run" if case.observed_items is None else str(case.observed_items)
+            console.print(
+                f"limit={case.limit} expected={case.expected_items} "
+                f"observed={observed} {case.outcome.upper()}"
+            )
+            if case.error:
+                console.print(f"  {case.error}")
+            if case.report and case.report.outcome != "pass":
+                display(case.report, Format.text)
     raise typer.Exit(report.exit_code)
 
 

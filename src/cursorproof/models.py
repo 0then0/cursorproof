@@ -110,6 +110,24 @@ class Report(Model):
         return {"pass": 0, "fail": 1, "error": 2}[self.outcome]
 
 
+class BoundaryCase(Model):
+    limit: Positive
+    expected_items: int = Field(ge=0)
+    observed_items: int | None = Field(default=None, ge=0)
+    outcome: Literal["pass", "fail", "error"]
+    report: Report | None = None
+    error: str | None = None
+
+
+class BoundaryReport(Model):
+    outcome: Literal["pass", "fail", "error"]
+    cases: list[BoundaryCase] = Field(min_length=1)
+
+    @property
+    def exit_code(self) -> int:
+        return {"pass": 0, "fail": 1, "error": 2}[self.outcome]
+
+
 def parse_trace(data: bytes) -> Trace:
     import json
 

@@ -11,7 +11,7 @@ from cursorproof.checks import analyze
 from cursorproof.config import Config, load_config
 from cursorproof.models import Item, Page, Trace, Traversal
 from cursorproof.privacy import replay_fingerprint
-from cursorproof.runner import run
+from cursorproof.runner import run, run_boundaries
 
 
 def config(**changes: object) -> Config:
@@ -687,10 +687,57 @@ def test_replay_fingerprint_redacts_sensitive_environment_command_argument(
 
 
 def test_replay_fingerprint_removes_credentials_from_command_url() -> None:
-    previous = config(oracle={"command": ["oracle", "postgresql://user:old-secret@db.test/orders"]})
-    current = config(oracle={"command": ["oracle", "postgresql://user:new-secret@db.test/orders"]})
+    previous = config(
+        oracle={"command": ["oracle", "--dbname=postgresql://user:old-secret@db.test/orders"]}
+    )
+    current = config(
+        oracle={"command": ["oracle", "--dbname=postgresql://user:new-secret@db.test/orders"]}
+    )
+    other_dataset = config(
+        oracle={"command": ["oracle", "--dbname=postgresql://user:new-secret@db.test/other"]}
+    )
 
     assert replay_fingerprint(previous) == replay_fingerprint(current)
+    assert replay_fingerprint(previous) != replay_fingerprint(other_dataset)
+
+
+def test_run_fingerprint_redacts_environment_database_url_inside_option(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "url": "https://api.test/orders",
+                "limits": [1],
+                "oracle": {
+                    "command": [
+                        sys.executable,
+                        "-c",
+                        "print('[]')",
+                        "--dbname=${DATABASE_URL}",
+                    ]
+                },
+            }
+        )
+    )
+    monkeypatch.setenv("DATABASE_URL", "postgresql://reader:1234@db.test/orders")
+    parsed, secrets = load_config(config_path)
+    report = run(parsed, secrets=secrets, transport=scripted([page([])]))
+    changed_credential = config(
+        limits=[1],
+        oracle={
+            "command": [
+                sys.executable,
+                "-c",
+                "print('[]')",
+                "--dbname=postgresql://reader:9876@db.test/orders",
+            ]
+        },
+    )
+
+    assert report.exit_code == 0
+    assert report.trace.replay_fingerprint == replay_fingerprint(changed_credential)
 
 
 def test_replay_fingerprint_keeps_dataset_command_argument() -> None:
@@ -806,6 +853,65 @@ def test_live_keyset_allows_unseen_insertions() -> None:
     )
     assert report.exit_code == 0
     assert any("completeness" in note for note in report.notes)
+
+
+def test_boundary_runner_prepares_cardinality_cases_and_detects_wrong_count(
+    tmp_path: Path,
+) -> None:
+    marker = tmp_path / "fixture-count"
+
+    class ReusableTransport(httpx.BaseTransport):
+        def handle_request(self, request: httpx.Request) -> httpx.Response:
+            count = int(marker.read_text())
+            ids = list(range(count))
+            if count == 3:
+                ids.remove(0)
+            limit = int(request.url.params["limit"])
+            offset = int(request.url.params.get("cursor", "0"))
+            items = ids[offset : offset + limit]
+            next_offset = offset + limit
+            cursor = str(next_offset) if next_offset < len(ids) else None
+            return httpx.Response(200, json=page(items, cursor))
+
+        def close(self) -> None:
+            pass
+
+    config_with_boundary = config(
+        limits=[2],
+        boundary_testing={
+            "setup": [
+                sys.executable,
+                "-c",
+                "import sys; from pathlib import Path; "
+                "Path('fixture-count').write_text(sys.argv[1])",
+                "{count}",
+            ],
+            "cleanup": [
+                sys.executable,
+                "-c",
+                "from pathlib import Path; Path('fixture-count').unlink(missing_ok=True)",
+            ],
+        },
+    )
+
+    report = run_boundaries(
+        config_with_boundary,
+        cwd=tmp_path,
+        transport=ReusableTransport(),
+    )
+
+    assert [(case.limit, case.expected_items) for case in report.cases] == [
+        (2, 0),
+        (2, 1),
+        (2, 2),
+        (2, 3),
+        (2, 4),
+        (2, 5),
+    ]
+    assert report.outcome == "fail"
+    assert report.cases[3].observed_items == 2
+    assert report.cases[3].outcome == "fail"
+    assert not marker.exists()
 
 
 @given(

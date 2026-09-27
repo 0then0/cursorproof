@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, BinaryIO, cast
+from typing import Any, BinaryIO, Literal, cast
 
 import httpx
 
@@ -19,6 +19,8 @@ from cursorproof.checks import analyze, identity_key
 from cursorproof.config import Config, Identity, Oracle, Ordering, Parameter
 from cursorproof.models import (
     BindingObservation,
+    BoundaryCase,
+    BoundaryReport,
     Issue,
     Item,
     MutationEvent,
@@ -681,3 +683,108 @@ def run(
     if len(trace.mutations) != len(config.mutations):
         trace.errors.append(Issue(message="Not all configured mutation hooks were reached"))
     return analyze(trace)
+
+
+def _run_boundary_command(command: list[str], timeout: float, cwd: Path) -> None:
+    try:
+        process = subprocess.Popen(
+            command,
+            cwd=cwd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            **cast(Any, _popen_options()),
+        )
+        return_code = _wait_for_process_tree(process, timeout)
+    except subprocess.TimeoutExpired:
+        raise ExecutionError("Boundary fixture command timed out") from None
+    except OSError:
+        raise ExecutionError("Boundary fixture command could not execute") from None
+    if return_code:
+        raise ExecutionError("Boundary fixture command failed")
+
+
+def boundary_cases(limits: list[int]) -> list[tuple[int, int]]:
+    cases: list[tuple[int, int]] = []
+    for limit in limits:
+        for count in dict.fromkeys((0, 1, limit - 1, limit, limit + 1, 2 * limit, 2 * limit + 1)):
+            cases.append((limit, count))
+    return cases
+
+
+def run_boundaries(
+    config: Config,
+    *,
+    cwd: Path | None = None,
+    secrets: set[str] | None = None,
+    transport: httpx.BaseTransport | None = None,
+) -> BoundaryReport:
+    boundary = config.boundary_testing
+    if boundary is None:
+        raise ValueError("Boundary testing is not configured")
+    cwd = cwd or Path.cwd()
+    cases: list[BoundaryCase] = []
+    failed = False
+    errored = False
+    for limit, count in boundary_cases(config.limits):
+        report: Report | None = None
+        error: str | None = None
+        try:
+            try:
+                setup = [
+                    argument.replace("{count}", str(count)).replace("{limit}", str(limit))
+                    for argument in boundary.setup
+                ]
+                _run_boundary_command(setup, boundary.timeout, cwd)
+                case_config = config.model_copy(update={"limits": [limit], "repeats": 1})
+                report = run(case_config, cwd=cwd, secrets=secrets, transport=transport)
+            except (ExecutionError, OSError, ValueError) as exc:
+                error = str(exc) if isinstance(exc, ExecutionError) else "Boundary scenario failed"
+        finally:
+            try:
+                _run_boundary_command(boundary.cleanup, boundary.timeout, cwd)
+            except ExecutionError:
+                error = "Boundary fixture cleanup failed"
+        if error is not None:
+            outcome: Literal["pass", "fail", "error"] = "error"
+            errored = True
+            observed = report.summary.unique_items if report else None
+            cases.append(
+                BoundaryCase(
+                    limit=limit,
+                    expected_items=count,
+                    observed_items=observed,
+                    outcome=outcome,
+                    report=report,
+                    error=error,
+                )
+            )
+            break
+        assert report is not None
+        observed = report.summary.unique_items
+        if report.outcome == "error":
+            outcome = "error"
+            errored = True
+        elif report.outcome == "fail" or observed != count:
+            outcome = "fail"
+            failed = True
+        else:
+            outcome = "pass"
+        cases.append(
+            BoundaryCase(
+                limit=limit,
+                expected_items=count,
+                observed_items=observed,
+                outcome=outcome,
+                report=report,
+                error=(
+                    f"Expected {count} unique items, observed {observed}."
+                    if observed != count
+                    else None
+                ),
+            )
+        )
+        if outcome == "error":
+            break
+    outcome = "error" if errored else "fail" if failed else "pass"
+    return BoundaryReport(outcome=outcome, cases=cases)
