@@ -15,7 +15,7 @@ from typing import Any, BinaryIO, Literal, cast
 import httpx
 
 from cursorproof import __version__
-from cursorproof.checks import analyze, identity_key
+from cursorproof.checks import CursorPageState, analyze, cursor_page_state, identity_key
 from cursorproof.config import Config, Identity, Oracle, Ordering, Parameter
 from cursorproof.models import (
     BindingObservation,
@@ -512,7 +512,8 @@ def traverse(
     run_number: int,
 ) -> None:
     cursor: str | None = None
-    seen: set[str] = set()
+    seen_page_states: dict[CursorPageState, int] = {}
+    seen_item_ids: set[tuple[type[str] | type[int], Identity]] = set()
     rows: list[RawItem] = []
     current_page = 1
     try:
@@ -578,10 +579,15 @@ def traverse(
             if next_cursor is None:
                 traversal.stop = "terminal"
                 break
-            if next_cursor in seen:
+            page_ids = [row.item.id for row in page_rows]
+            page_state = cursor_page_state(next_cursor, page_ids)
+            previous_page = seen_page_states.get(page_state)
+            no_new_items = all(identity_key(item_id) in seen_item_ids for item_id in page_ids)
+            if previous_page is not None and no_new_items:
                 traversal.stop = "cycle"
                 break
-            seen.add(next_cursor)
+            seen_page_states.setdefault(page_state, current_page)
+            seen_item_ids.update(identity_key(item_id) for item_id in page_ids)
             if current_page == config.max_pages:
                 traversal.stop = "budget"
                 break

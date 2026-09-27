@@ -9,9 +9,18 @@ from cursorproof.models import (
     Trace,
 )
 
+type CursorPageState = tuple[
+    str,
+    tuple[tuple[type[str] | type[int], Identity], ...],
+]
+
 
 def identity_key(value: Identity) -> tuple[type[str] | type[int], Identity]:
     return type(value), value
+
+
+def cursor_page_state(next_cursor: str, item_ids: list[Identity]) -> CursorPageState:
+    return next_cursor, tuple(identity_key(item_id) for item_id in item_ids)
 
 
 def analyze(trace: Trace) -> Report:
@@ -39,13 +48,14 @@ def analyze(trace: Trace) -> Report:
     for run_number, traversal in enumerate(trace.traversals, 1):
         seen_items: dict[tuple[type[str] | type[int], Identity], Location] = {}
         seen_sort_keys: dict[tuple[type[str] | type[int], Identity], list[int] | None] = {}
-        seen_cursors: dict[str, int] = {}
+        seen_page_states: dict[CursorPageState, int] = {}
         previous: tuple[list[int], Location, Identity] | None = None
         stream: list[Identity] = []
         cursor: str | None = None
         cycle = False
         for expected_page, page in enumerate(traversal.pages, 1):
             here = Location(traversal=run_number, page=page.number)
+            prior_item_keys = set(seen_items)
             if page.number != expected_page or page.cursor != cursor:
                 errors.append(Issue(message="Trace has inconsistent page/cursor linkage"))
             if not 200 <= page.status < 300:
@@ -111,30 +121,40 @@ def analyze(trace: Trace) -> Report:
                         previous = item.sort_key, location, item.id
             next_cursor = page.next_cursor
             if next_cursor is not None:
-                if next_cursor == page.cursor:
+                page_state = cursor_page_state(next_cursor, [item.id for item in page.items])
+                previous_page = seen_page_states.get(page_state)
+                no_new_items = all(identity_key(item.id) in prior_item_keys for item in page.items)
+                if previous_page is not None and no_new_items and next_cursor == page.cursor:
                     cycle = True
                     findings.append(
                         Finding(
                             code="CP001",
                             name="CURSOR_NOT_ADVANCING",
-                            message="The next cursor is identical to the request cursor.",
+                            message=(
+                                "The same next cursor and page identities repeated "
+                                "without adding new identities."
+                            ),
                             locations=[here],
                         )
                     )
-                elif next_cursor in seen_cursors:
+                elif previous_page is not None and no_new_items:
                     cycle = True
                     findings.append(
                         Finding(
                             code="CP006",
                             name="CURSOR_CYCLE",
-                            message="A previously returned cursor was returned again.",
+                            message=(
+                                "A next cursor and page identity sequence repeated "
+                                "without adding new identities."
+                            ),
                             locations=[
-                                Location(traversal=run_number, page=seen_cursors[next_cursor]),
+                                Location(traversal=run_number, page=previous_page),
                                 here,
                             ],
                         )
                     )
-                seen_cursors.setdefault(next_cursor, page.number)
+                else:
+                    seen_page_states.setdefault(page_state, page.number)
             if next_cursor is None and expected_page != len(traversal.pages):
                 errors.append(Issue(message="Trace continues after a terminal page"))
             cursor = next_cursor

@@ -217,12 +217,14 @@ proving that the cursor is bound.
 
 ## Findings and exit codes
 
-- `CP001 CURSOR_NOT_ADVANCING`: next cursor equals the request cursor.
+- `CP001 CURSOR_NOT_ADVANCING`: the same self-loop cursor and page identities
+  repeat without adding new identities.
 - `CP002 DUPLICATE_ITEM`: identity repeats within or between pages.
 - `CP003 MISSING_ITEMS`: oracle identities are absent after a complete traversal.
 - `CP004 ORDER_VIOLATION` / `ORACLE_ORDER_MISMATCH`: declared or oracle order differs.
 - `CP005 PAGE_SIZE_EXCEEDED`: response contains more items than requested.
-- `CP006 CURSOR_CYCLE`: a longer cursor cycle is detected.
+- `CP006 CURSOR_CYCLE`: the same next cursor and page identity sequence repeat
+  without adding new identities.
 - `CP007 CURSOR_BINDING_VIOLATION`: changed-query cursor was accepted.
 - `CP008 TERMINATION_ERROR`: `has_more` contradicts terminal cursor semantics.
 - `CP009 INCONSISTENT_TRAVERSAL`: complete streams differ across runs.
@@ -245,6 +247,12 @@ and configured contract, not proof for every possible dataset.
 The summary counts observed items across all traversals and distinct identities
 across those traversals. `responses` counts recorded page and binding responses;
 it excludes oracle responses and failed requests.
+
+Cursor values are opaque: repeating a token alone does not indicate a cycle. CursorProof
+continues when a repeated token returns new identities. It reports a cycle when the same
+next cursor and page identity sequence recur without new identities. `max_pages`
+still bounds traversals that continue without reaching a terminal page or repeating an
+observable page state.
 
 ## Reproduction and privacy
 
@@ -304,4 +312,3 @@ omitted; ranks preserve ordering evidence, not the original values.
 Offline replay reproduces the checks on recorded evidence. Live replay needs the
 original configuration, credentials, and suitable current data; expiring cursors,
 external state, and mutation effects cannot be restored automatically.
-

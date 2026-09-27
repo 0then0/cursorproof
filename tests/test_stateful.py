@@ -33,16 +33,27 @@ class PaginationMachine(RuleBasedStateMachine):
     @rule(immediate=st.booleans())
     def loop_cursor(self, immediate: bool) -> None:
         cursor = self.pages[-1].next_cursor
-        self.pages.append(
-            Page(
-                number=len(self.pages) + 1,
-                request="https://api.test/orders",
-                cursor=cursor,
-                next_cursor=cursor if immediate else self.pages[0].next_cursor,
-                items=[],
+        if immediate:
+            transitions = [(cursor, cursor), (cursor, cursor)]
+            self.cycle = "CP001"
+        else:
+            next_cursor = f"loop_{len(self.pages)}"
+            transitions = [
+                (cursor, next_cursor),
+                (next_cursor, cursor),
+                (cursor, next_cursor),
+            ]
+            self.cycle = "CP006"
+        for request_cursor, response_cursor in transitions:
+            self.pages.append(
+                Page(
+                    number=len(self.pages) + 1,
+                    request="https://api.test/orders",
+                    cursor=request_cursor,
+                    next_cursor=response_cursor,
+                    items=[],
+                )
             )
-        )
-        self.cycle = "CP001" if immediate else "CP006"
 
     @rule()
     def observe(self) -> None:

@@ -41,12 +41,48 @@ def test_duplicate_has_exact_locations_and_replays() -> None:
     assert analyze(trace) == report
 
 
-@pytest.mark.parametrize(("cursors", "code"), [(["A", "A"], "CP001"), (["A", "B", "A"], "CP006")])
-def test_cursor_cycles_stop(cursors: list[str], code: str) -> None:
-    report = run(config(), transport=scripted([page([i], c) for i, c in enumerate(cursors)]))
+def test_repeated_opaque_cursor_with_new_items_is_followed() -> None:
+    report = run(
+        config(),
+        transport=scripted([page([1], "opaque"), page([2], "opaque"), page([3])]),
+    )
+    assert report.exit_code == 0
+    assert report.summary.pages == 3
+    assert not {"CP001", "CP006"} & codes(report)
+    assert analyze(report.trace) == report
+
+
+def test_self_repeating_cursor_requires_repeated_stagnant_page() -> None:
+    report = run(
+        config(),
+        transport=scripted([page([1], "A"), page([1], "A"), page([1], "A"), page([2])]),
+    )
     assert report.exit_code == 1
-    assert codes(report) == {code}
-    assert report.summary.pages == len(cursors)
+    assert report.summary.pages == 2
+    assert {"CP001", "CP002"} <= codes(report)
+    assert analyze(report.trace) == report
+
+
+def test_cursor_value_cycle_with_new_items_is_followed() -> None:
+    report = run(
+        config(),
+        transport=scripted([page([1], "A"), page([2], "B"), page([3], "A"), page([4])]),
+    )
+    assert report.exit_code == 0
+    assert report.summary.pages == 4
+    assert not {"CP001", "CP006"} & codes(report)
+    assert analyze(report.trace) == report
+
+
+def test_long_cursor_cycle_requires_repeated_stagnant_page() -> None:
+    report = run(
+        config(),
+        transport=scripted([page([1], "A"), page([2], "B"), page([3], "A"), page([2], "B")]),
+    )
+    assert report.exit_code == 1
+    assert report.summary.pages == 4
+    assert {"CP002", "CP006"} <= codes(report)
+    assert analyze(report.trace) == report
 
 
 def test_empty_nonterminal_page_and_empty_string_cursor() -> None:
