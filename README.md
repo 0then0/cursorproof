@@ -8,7 +8,16 @@ and can compare it with an independent authoritative oracle.
 
 ## Install and run
 
-From this checkout:
+Requires Python 3.13 or newer. After the first tagged release is published,
+install the CLI from PyPI:
+
+```sh
+pipx install cursorproof
+# or
+python -m pip install cursorproof
+```
+
+To install from this checkout instead:
 
 ```sh
 uv sync
@@ -41,7 +50,24 @@ for continuation, so page boundaries skip records despite successful HTTP respon
 `/correct` also uses the unique ID. The broken configuration reports `CP003 MISSING_ITEMS`
 and differences between limits; the correct configuration passes.
 
-The project has not been published to a package registry by this checkout.
+## Releases
+
+Update the version in `pyproject.toml`, then push a matching `v`-prefixed tag
+(for example, `v0.1.0`):
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The release workflow runs the checks, builds a wheel and source
+distribution, creates a GitHub Release with generated notes and both files, and
+publishes those same files to PyPI through Trusted Publishing.
+
+Before the first release, create a GitHub Actions environment named `pypi` and
+configure the matching PyPI Trusted Publisher. Restrict the environment to `v*`
+tags and add required reviewers if desired. The workflow and publisher must keep
+the same environment name.
 
 ## Configuration
 
