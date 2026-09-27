@@ -119,6 +119,38 @@ def test_oracle_command_output_accepts_exact_limit_and_rejects_one_over(
         command_output(one_over, timeout=1, cwd=tmp_path, max_bytes=4)
 
 
+def test_oracle_output_write_failure_is_reported(tmp_path: Path, monkeypatch) -> None:
+    class FailingOutput(io.BytesIO):
+        writes = 0
+
+        def write(self, data: bytes) -> int:
+            self.writes += 1
+            if self.writes == 2:
+                raise OSError("simulated disk full")
+            return super().write(data)
+
+    monkeypatch.setattr("cursorproof.runner.tempfile.TemporaryFile", FailingOutput)
+    config_with_command = config(
+        max_response_bytes=200_000,
+        oracle={
+            "command": [
+                sys.executable,
+                "-c",
+                "import sys; sys.stdout.buffer.write(b'[]' + b' ' * 131070)",
+            ]
+        },
+    )
+    report = run(
+        config_with_command,
+        transport=httpx.MockTransport(
+            lambda request: pytest.fail("API request should not run after oracle output failure")
+        ),
+    )
+
+    assert report.exit_code == 2
+    assert any("Could not store oracle output" in error.message for error in report.errors)
+
+
 def test_oracle_timeout_kills_child_processes(tmp_path: Path) -> None:
     marker = tmp_path / "late-oracle-child"
     child = (
@@ -127,7 +159,8 @@ def test_oracle_timeout_kills_child_processes(tmp_path: Path) -> None:
     )
     parent = (
         "import subprocess,sys,time; "
-        f"subprocess.Popen([sys.executable,'-c',{child!r}]); time.sleep(5)"
+        f"subprocess.Popen([sys.executable,'-c',{child!r}]); "
+        "time.sleep(5)"
     )
 
     with pytest.raises(ExecutionError, match="timed out"):
@@ -145,7 +178,8 @@ def test_mutation_timeout_kills_child_processes(tmp_path: Path) -> None:
     )
     parent = (
         "import subprocess,sys,time; "
-        f"subprocess.Popen([sys.executable,'-c',{child!r}]); time.sleep(5)"
+        f"subprocess.Popen([sys.executable,'-c',{child!r}]); "
+        "time.sleep(5)"
     )
     config_with_hook = config(
         consistency="snapshot",
@@ -170,6 +204,31 @@ def test_mutation_timeout_kills_child_processes(tmp_path: Path) -> None:
 
     time.sleep(0.4)
     assert not marker.exists()
+
+
+def test_mutation_waits_for_foreground_child_work(tmp_path: Path) -> None:
+    marker = tmp_path / "child-finished"
+    child = (
+        f"import time; from pathlib import Path; time.sleep(.1); "
+        f"Path({str(marker)!r}).write_text('done')"
+    )
+    parent = f"import subprocess,sys; subprocess.Popen([sys.executable,'-c',{child!r}])"
+    config_with_hook = config(
+        consistency="snapshot",
+        response={"snapshot_fields": ["$"]},
+        oracle={"command": [sys.executable, "-c", "print('[]')"]},
+        mutations=[{"after_page": 1, "command": [sys.executable, "-c", parent], "timeout": 1}],
+    )
+    trace = Trace(
+        tool_version="test",
+        consistency="snapshot",
+        traversals=[Traversal(limit=2)],
+    )
+
+    run_mutations(config_with_hook, 1, tmp_path, trace)
+
+    assert marker.read_text() == "done"
+    assert len(trace.mutations) == 1
 
 
 @pytest.mark.parametrize(

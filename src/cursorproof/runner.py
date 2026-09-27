@@ -40,10 +40,52 @@ def _popen_options() -> dict[str, object]:
     return {"start_new_session": True}
 
 
+def _descendant_pids(root_pid: int) -> set[int]:
+    if os.name == "nt":
+        return set()
+    try:
+        result = subprocess.run(
+            ["ps", "-axo", "pid=,ppid="],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=True,
+            text=True,
+            timeout=2,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    parents: dict[int, set[int]] = {}
+    for line in result.stdout.splitlines():
+        try:
+            pid, parent = (int(value) for value in line.split())
+        except (ValueError, TypeError):
+            continue
+        parents.setdefault(parent, set()).add(pid)
+    descendants: set[int] = set()
+    pending = list(parents.get(root_pid, ()))
+    while pending:
+        pid = pending.pop()
+        if pid not in descendants:
+            descendants.add(pid)
+            pending.extend(parents.get(pid, ()))
+    return descendants
+
+
+def _process_group_exists(process_id: int) -> bool:
+    try:
+        os.killpg(process_id, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
 def _kill_process_tree(process: subprocess.Popen[bytes]) -> None:
     try:
         if os.name == "nt":
-            subprocess.run(
+            result = subprocess.run(
                 ["taskkill", "/F", "/T", "/PID", str(process.pid)],
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.DEVNULL,
@@ -51,7 +93,15 @@ def _kill_process_tree(process: subprocess.Popen[bytes]) -> None:
                 check=False,
                 timeout=5,
             )
+            if result.returncode and process.poll() is None:
+                process.kill()
         else:
+            descendants = _descendant_pids(process.pid)
+            for pid in descendants:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
             os.killpg(process.pid, signal.SIGKILL)
     except (OSError, subprocess.SubprocessError):
         if process.poll() is None:
@@ -60,20 +110,46 @@ def _kill_process_tree(process: subprocess.Popen[bytes]) -> None:
         process.wait()
 
 
+def _wait_for_process_tree(process: subprocess.Popen[bytes], timeout: float) -> int:
+    deadline = time.monotonic() + timeout
+    while process.poll() is None:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            _kill_process_tree(process)
+            raise subprocess.TimeoutExpired(process.args, timeout)
+        time.sleep(min(0.01, remaining))
+    return_code = process.wait()
+    if return_code:
+        _kill_process_tree(process)
+        return return_code
+    if os.name != "nt":
+        while _process_group_exists(process.pid):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                _kill_process_tree(process)
+                raise subprocess.TimeoutExpired(process.args, timeout)
+            time.sleep(min(0.01, remaining))
+    return return_code
+
+
 def _copy_bounded_output(
     source: BinaryIO,
     destination: BinaryIO,
     max_bytes: int,
     exceeded: threading.Event,
+    failed: threading.Event,
 ) -> None:
     size = 0
-    while chunk := source.read(64 * 1024):
-        allowed = max_bytes + 1 - size
-        destination.write(chunk[:allowed])
-        size += min(len(chunk), allowed)
-        if size > max_bytes:
-            exceeded.set()
-            return
+    try:
+        while chunk := source.read(64 * 1024):
+            allowed = max_bytes + 1 - size
+            destination.write(chunk[:allowed])
+            size += min(len(chunk), allowed)
+            if size > max_bytes:
+                exceeded.set()
+                return
+    except Exception:
+        failed.set()
 
 
 class ExecutionError(ValueError):
@@ -179,7 +255,16 @@ def validate_binding_baseline(body: bytes, config: Config, limit: int) -> None:
         )
         for value in values
     ]
+    row_ids = [identity_key(row.item.id) for row in rows]
+    if len(set(row_ids)) != len(row_ids):
+        raise ExecutionError("Changed query returned duplicate item identities")
     assign_ranks(rows, config.ordering)
+    if any(
+        current.item.sort_key < previous.item.sort_key
+        for previous, current in zip(rows, rows[1:], strict=False)
+        if previous.item.sort_key is not None and current.item.sort_key is not None
+    ):
+        raise ExecutionError("Changed query returned items out of declared order")
 
 
 def fetch(client: httpx.Client, request: httpx.Request, max_bytes: int) -> tuple[int, bytes]:
@@ -211,15 +296,16 @@ def command_output(command: list[str], timeout: float, cwd: Path, max_bytes: int
             )
             deadline = time.monotonic() + timeout
             exceeded = threading.Event()
+            failed = threading.Event()
             assert process.stdout is not None
             reader = threading.Thread(
                 target=_copy_bounded_output,
-                args=(process.stdout, output, max_bytes, exceeded),
+                args=(process.stdout, output, max_bytes, exceeded, failed),
                 daemon=True,
             )
             reader.start()
             try:
-                while process.poll() is None and not exceeded.is_set():
+                while process.poll() is None and not exceeded.is_set() and not failed.is_set():
                     remaining = deadline - time.monotonic()
                     if remaining <= 0:
                         _kill_process_tree(process)
@@ -228,6 +314,9 @@ def command_output(command: list[str], timeout: float, cwd: Path, max_bytes: int
                 if exceeded.is_set():
                     _kill_process_tree(process)
                     raise ExecutionError("Oracle output exceeded max_response_bytes")
+                if failed.is_set():
+                    _kill_process_tree(process)
+                    raise ExecutionError("Could not store oracle output")
                 reader.join(max(0, deadline - time.monotonic()))
                 if reader.is_alive():
                     _kill_process_tree(process)
@@ -235,6 +324,9 @@ def command_output(command: list[str], timeout: float, cwd: Path, max_bytes: int
                 if exceeded.is_set():
                     _kill_process_tree(process)
                     raise ExecutionError("Oracle output exceeded max_response_bytes")
+                if failed.is_set():
+                    _kill_process_tree(process)
+                    raise ExecutionError("Could not store oracle output")
             except BaseException:
                 if process.poll() is None:
                     _kill_process_tree(process)
@@ -304,7 +396,7 @@ def run_mutations(config: Config, page: int, cwd: Path, trace: Trace) -> None:
                 **cast(Any, _popen_options()),
             )
             try:
-                return_code = process.wait(timeout=hook.timeout)
+                return_code = _wait_for_process_tree(process, hook.timeout)
             except subprocess.TimeoutExpired:
                 _kill_process_tree(process)
                 raise ExecutionError("Mutation hook could not execute or timed out") from None
@@ -493,7 +585,7 @@ def run(
     redactor = Redactor(secret_values)
     trace = Trace(
         tool_version=__version__,
-        replay_fingerprint=replay_fingerprint(config, secret_values),
+        replay_fingerprint=replay_fingerprint(config),
         consistency=config.consistency,
         ordering_fields=[redactor.text(field.field) for field in config.ordering],
         binding_reject_statuses=(

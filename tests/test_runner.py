@@ -444,6 +444,37 @@ def test_binding_requires_valid_pagination_body_for_baseline() -> None:
     assert any("invalid pagination response" in issue.message for issue in report.errors)
 
 
+@pytest.mark.parametrize(
+    ("alternative_ids", "ordering"),
+    [([1, 1], []), ([2, 1], [{"field": "id", "direction": "asc"}])],
+)
+def test_binding_rejects_duplicate_or_out_of_order_baseline(
+    alternative_ids: list[int], ordering: list[dict[str, str]]
+) -> None:
+    def handle(request: httpx.Request) -> httpx.Response:
+        if request.url.params["status"] == "closed":
+            if "cursor" in request.url.params:
+                pytest.fail("A cursor probe must not follow an invalid baseline")
+            return httpx.Response(200, json=page(alternative_ids))
+        return httpx.Response(
+            200,
+            json=page([1], "A") if "cursor" not in request.url.params else page([2]),
+        )
+
+    report = run(
+        config(
+            parameters={"status": "open"},
+            ordering=ordering,
+            cursor_binding={"parameters": {"status": ["closed"]}},
+        ),
+        transport=httpx.MockTransport(handle),
+    )
+
+    assert report.exit_code == 2
+    assert "CP007" not in codes(report)
+    assert any("invalid pagination response" in issue.message for issue in report.errors)
+
+
 def test_offline_trace_cannot_drop_all_configured_binding_evidence() -> None:
     trace = Trace(
         tool_version="test",
@@ -568,20 +599,43 @@ def test_key_query_parameter_is_redacted_from_saved_trace() -> None:
     assert "key=%5BREDACTED%5D" in report.trace.traversals[0].pages[0].request
 
 
+def test_x_key_query_parameter_is_redacted_from_saved_trace() -> None:
+    secret = "cp-review-x-key-456"
+    report = run(
+        config(url=f"https://api.test/orders?x-key={secret}", limits=[1]),
+        transport=scripted([page([])]),
+    )
+
+    assert secret not in report.trace.model_dump_json()
+    assert "x-key=%5BREDACTED%5D" in report.trace.traversals[0].pages[0].request
+
+
 def test_replay_fingerprint_allows_rotating_authentication_header() -> None:
     previous = config(headers={"Authorization": "Bearer old-secret"})
     current = config(headers={"Authorization": "Bearer new-secret"})
 
-    assert replay_fingerprint(previous, {"old-secret"}) == replay_fingerprint(
-        current, {"new-secret"}
-    )
+    assert replay_fingerprint(previous) == replay_fingerprint(current)
+
+
+def test_replay_fingerprint_allows_rotating_x_key_header() -> None:
+    previous = config(headers={"X-Key": "old-secret"})
+    current = config(headers={"X-Key": "new-secret"})
+
+    assert replay_fingerprint(previous) == replay_fingerprint(current)
 
 
 def test_replay_fingerprint_includes_non_auth_header_values() -> None:
     previous = config(headers={"X-Tenant": "tenant-a"})
     current = config(headers={"X-Tenant": "tenant-b"})
 
-    assert replay_fingerprint(previous, set()) != replay_fingerprint(current, set())
+    assert replay_fingerprint(previous) != replay_fingerprint(current)
+
+
+def test_sort_key_query_parameter_is_not_redacted_or_ignored() -> None:
+    previous = config(url="https://api.test/orders?sort_key=created_at")
+    current = config(url="https://api.test/orders?sort_key=id")
+
+    assert replay_fingerprint(previous) != replay_fingerprint(current)
 
 
 def test_mutation_hook_runs_between_pages(tmp_path: Path) -> None:

@@ -10,7 +10,7 @@ import httpx
 from typer.testing import CliRunner
 
 from cursorproof.cli import app
-from cursorproof.config import Config
+from cursorproof.config import Config, load_config
 from cursorproof.runner import run
 
 
@@ -151,6 +151,79 @@ def test_live_replay_rejects_changed_check_contract(tmp_path: Path) -> None:
     assert result.exit_code == 2
     assert "contract does not match" in result.stdout
     execute.assert_not_called()
+
+
+def test_live_replay_rejects_changed_env_stream_parameter(tmp_path: Path, monkeypatch) -> None:
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(
+            200,
+            json={
+                "results": [
+                    {"id": item}
+                    for item in ([2, 1] if request.url.params["tenant"] == "tenant-a" else [1, 2])
+                ],
+                "next_cursor": None,
+            },
+        )
+    )
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "url": "https://api.test/orders",
+                "limits": [2],
+                "parameters": {"tenant": "${CURSORPROOF_TENANT}"},
+                "ordering": [{"field": "id", "direction": "asc"}],
+            }
+        )
+    )
+    monkeypatch.setenv("CURSORPROOF_TENANT", "tenant-a")
+    original, secrets = load_config(config_path)
+    original_report = run(original, secrets=secrets, transport=transport)
+    assert "CP004" in {finding.code for finding in original_report.findings}
+    trace = tmp_path / "tenant-trace.json"
+    trace.write_text(original_report.trace.model_dump_json())
+    assert "tenant-a" not in trace.read_text()
+
+    monkeypatch.setenv("CURSORPROOF_TENANT", "tenant-b")
+    with patch(
+        "cursorproof.cli.execute",
+        side_effect=lambda parsed, **kwargs: run(
+            parsed, secrets=kwargs["secrets"], transport=transport
+        ),
+    ) as execute:
+        result = CliRunner().invoke(
+            app,
+            ["replay", str(trace), "--config", str(config_path), "--format", "json"],
+        )
+
+    assert result.exit_code == 2
+    assert "contract does not match" in result.stdout
+    execute.assert_not_called()
+
+
+def test_live_replay_client_setup_error_is_safe_json(tmp_path: Path, monkeypatch) -> None:
+    config_path = tmp_path / "config.json"
+    config_path.write_text(json.dumps({"url": "https://api.test/orders", "limits": [1]}))
+    original = Config(url="https://api.test/orders", limits=[1])
+    report = run(
+        original,
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(200, json={"results": [], "next_cursor": None})
+        ),
+    )
+    trace = tmp_path / "trace.json"
+    trace.write_text(report.trace.model_dump_json())
+    monkeypatch.setenv("SSL_CERT_FILE", str(tmp_path / "missing-certificate.pem"))
+
+    result = CliRunner().invoke(
+        app,
+        ["replay", str(trace), "--config", str(config_path), "--format", "json"],
+    )
+
+    assert result.exit_code == 2
+    assert json.loads(result.stdout)["outcome"] == "error"
+    assert "missing-certificate" not in result.stdout
 
 
 def test_check_never_executes_config_commands(tmp_path: Path) -> None:

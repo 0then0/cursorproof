@@ -8,7 +8,8 @@ from cursorproof.config import Identity
 
 _SENSITIVE = re.compile(
     r"token|secret|password|authorization|auth|api[_-]?key|access[_-]?key|"
-    r"credential|signature|(^|[_-])sig($|[_-])|session|cookie|jwt|(^|[_-])key($|[_-])",
+    r"credential|signature|(^|[_-])sig($|[_-])|session|cookie|jwt|^key$|"
+    r"(^|[_-])(?:api|access|client|private|secret)[_-]?key($|[_-])|^x-key$",
     re.I,
 )
 
@@ -76,13 +77,12 @@ class Redactor:
         return self.text(urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), "")))
 
 
-def replay_fingerprint(config: object, secrets: set[str]) -> str:
-    """Hash the replay contract after removing credentials and sensitive URL values."""
+def replay_fingerprint(config: object) -> str:
+    """Hash the replay contract, omitting only values in known credential fields."""
     from cursorproof.config import Config
 
     if not isinstance(config, Config):
         raise TypeError("Expected a validated CursorProof configuration")
-    redactor = Redactor(secrets)
 
     def sanitize(value: object, field: str | None = None) -> object:
         if isinstance(value, dict):
@@ -98,11 +98,13 @@ def replay_fingerprint(config: object, secrets: set[str]) -> str:
             if field == "url":
                 parts = urlsplit(value)
                 query = [
-                    (name, "[REDACTED]" if _SENSITIVE.search(name) else redactor.text(item))
+                    (name, "[REDACTED]" if _SENSITIVE.search(name) else item)
                     for name, item in parse_qsl(parts.query, keep_blank_values=True)
                 ]
                 value = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), ""))
-            return redactor.text(value)
+            elif field is not None and _SENSITIVE.search(field):
+                return "[REDACTED]"
+            return value
         return value
 
     payload = sanitize(config.model_dump(mode="json"))

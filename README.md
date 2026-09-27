@@ -197,6 +197,7 @@ mutations:
 Hooks on a terminal page do not execute. An unreachable hook, command failure,
 timeout, or traversal budget produces an incomplete/error result. Hooks execute
 real commands: run these configurations against controlled test environments.
+Hooks must wait for child work to finish and must not daemonize mutation work.
 There is no automatic dataset reset, fixture generation, or scenario shrinking.
 Hypothesis is used to test CursorProof's own invariants and boundary cases.
 
@@ -275,6 +276,8 @@ The trace includes a fingerprint of the sanitized replay configuration. Live rep
 rejects changes to response paths, ordering, oracle, mutation hooks, and other checks.
 Sensitive authentication header values are excluded from the fingerprint so credentials
 can rotate; other header values remain part of the replay contract.
+Ordinary query parameter values also affect the fingerprint, including values expanded
+from environment variables, so changing a tenant or filter rejects live replay.
 Trace schema version 2 migrates version 1 static traces. Older snapshot and cursor-binding
 traces replay as incomplete because they lack the evidence those checks now require.
 Older version 2 traces without a replay fingerprint remain available for offline replay

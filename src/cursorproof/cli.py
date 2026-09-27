@@ -194,7 +194,7 @@ def replay(
                 output_format,
             )
             return
-        if replay_fingerprint(parsed, secrets) != recorded.replay_fingerprint:
+        if replay_fingerprint(parsed) != recorded.replay_fingerprint:
             fail("Replay configuration contract does not match the saved trace", output_format)
             return
         selected = recorded.traversals[traversal_number - 1]
@@ -205,8 +205,12 @@ def replay(
             **parsed.parameters,
             parsed.pagination.limit_param: selected.limit,
         }
-        with httpx.Client(headers=parsed.headers, follow_redirects=False) as client:
-            request = build_request(client, parsed.url, request_params)
+        try:
+            with httpx.Client(headers=parsed.headers, follow_redirects=False) as client:
+                request = build_request(client, parsed.url, request_params)
+        except (OSError, ValueError, httpx.HTTPError, httpx.InvalidURL):
+            fail("Cannot initialize HTTP client or build the replay request", output_format)
+            return
         redaction_secrets = set(secrets) | set(parsed.headers.values())
         if parsed.oracle:
             redaction_secrets.update(parsed.oracle.headers.values())
