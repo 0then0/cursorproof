@@ -170,6 +170,21 @@ def test_oracle_timeout_kills_child_processes(tmp_path: Path) -> None:
     assert not marker.exists()
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Detached process groups are POSIX-specific")
+def test_oracle_timeout_returns_when_detached_child_holds_stdout(tmp_path: Path) -> None:
+    child = "import time; time.sleep(.4)"
+    parent = (
+        "import subprocess,sys; "
+        f"subprocess.Popen([sys.executable,'-c',{child!r}], start_new_session=True)"
+    )
+    started = time.monotonic()
+
+    with pytest.raises(ExecutionError, match="timed out"):
+        command_output([sys.executable, "-c", parent], timeout=0.05, cwd=tmp_path, max_bytes=1024)
+
+    assert time.monotonic() - started < 0.3
+
+
 def test_mutation_timeout_kills_child_processes(tmp_path: Path) -> None:
     marker = tmp_path / "late-mutation-child"
     child = (

@@ -1,7 +1,7 @@
 import json
 import runpy
 import sys
-from http.server import HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from threading import Thread
 from unittest.mock import patch
@@ -362,3 +362,69 @@ def test_live_replay_requires_opt_in_before_oracle_command(tmp_path: Path) -> No
     result = CliRunner().invoke(app, ["replay", str(saved_trace), "--config", str(config)])
     assert result.exit_code == 2
     assert not marker.exists()
+
+
+def test_live_replay_rejects_changed_oracle_dataset_environment(
+    tmp_path: Path, monkeypatch
+) -> None:
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            body = b'{"results":[{"id":1}],"next_cursor":null}'
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, format: str, *args: object) -> None:
+            pass
+
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    thread = Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
+    thread.start()
+    config = tmp_path / "config.json"
+    trace = tmp_path / "trace.json"
+    monkeypatch.setenv("DATASET", "longdataset")
+    config.write_text(
+        json.dumps(
+            {
+                "url": f"http://127.0.0.1:{server.server_port}/orders",
+                "limits": [1],
+                "oracle": {
+                    "command": [
+                        sys.executable,
+                        "-c",
+                        "import json,sys; print(json.dumps("
+                        "[1,2] if len(sys.argv[1]) > 5 else [1]))",
+                        "${DATASET}",
+                    ]
+                },
+            }
+        )
+    )
+    try:
+        initial = CliRunner().invoke(
+            app, ["run", str(config), "--format", "json", "--repro", str(trace)]
+        )
+        assert initial.exit_code == 1
+        assert any(finding["code"] == "CP003" for finding in json.loads(initial.stdout)["findings"])
+
+        monkeypatch.setenv("DATASET", "short")
+        replay = CliRunner().invoke(
+            app,
+            [
+                "replay",
+                str(trace),
+                "--config",
+                str(config),
+                "--execute-hooks",
+                "--format",
+                "json",
+            ],
+        )
+        assert replay.exit_code == 2
+        assert "contract does not match" in replay.stdout
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)

@@ -278,6 +278,9 @@ The trace includes a fingerprint of the sanitized replay configuration. Live rep
 rejects changes to response paths, ordering, oracle, mutation hooks, and other checks.
 Sensitive authentication header values are excluded from the fingerprint so credentials
 can rotate; other header values remain part of the replay contract.
+Because rotated credentials can represent a different principal or tenant, keep the
+authorization scope stable and express tenant or dataset selection in a non-secret
+header or query parameter so live replay can compare it.
 Ordinary query parameter values also affect the fingerprint, including values expanded
 from environment variables, so changing a tenant or filter rejects live replay.
 Trace schema version 2 migrates version 1 static traces. Older snapshot and cursor-binding

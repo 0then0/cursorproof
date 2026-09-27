@@ -12,6 +12,7 @@ _SENSITIVE_PARTS = {
     "cookie",
     "credential",
     "jwt",
+    "pin",
     "password",
     "secret",
     "session",
@@ -25,6 +26,9 @@ _SENSITIVE_KEY_PREFIXES = {"access", "api", "client", "private", "secret", "x"}
 def is_sensitive_name(name: str) -> bool:
     parts = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", name).lower().replace("-", "_").split("_")
     if any(part in _SENSITIVE_PARTS for part in parts):
+        return True
+    compact = "".join(parts)
+    if any(compact.endswith(f"{prefix}key") for prefix in _SENSITIVE_KEY_PREFIXES):
         return True
     return name.lower() == "key" or any(
         prefix in _SENSITIVE_KEY_PREFIXES and parts[index + 1] == "key"
@@ -112,12 +116,7 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str:
             return {key: sanitize(item, key) for key, item in value.items()}
         if isinstance(value, list):
             if field == "command":
-                return [
-                    redact_command_argument(item, secrets or set())
-                    if isinstance(item, str)
-                    else sanitize(item)
-                    for item in value
-                ]
+                return sanitize_command(value, secrets or set())
             return [sanitize(item) for item in value]
         if isinstance(value, str):
             if field == "url":
@@ -137,7 +136,50 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str:
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def redact_command_argument(value: str, secrets: set[str]) -> str:
-    for secret in sorted((item for item in secrets if item), key=len, reverse=True):
-        value = value.replace(secret, "[REDACTED]")
-    return value
+def sanitize_command(command: list[object], secrets: set[str]) -> list[object]:
+    names_by_value = getattr(secrets, "names_by_value", {})
+    sanitized: list[object] = []
+    redact_next = False
+    for value in command:
+        if not isinstance(value, str):
+            sanitized.append(value)
+            redact_next = False
+            continue
+        if redact_next:
+            sanitized.append("[REDACTED]")
+            redact_next = False
+            continue
+        match = re.fullmatch(r"(-{1,2}[A-Za-z0-9_-]+)=(.*)", value)
+        if match and is_sensitive_name(match.group(1).lstrip("-")):
+            sanitized.append(f"{match.group(1)}=[REDACTED]")
+            continue
+        option = value.lstrip("-") if value.startswith("-") else ""
+        if option and is_sensitive_name(option):
+            sanitized.append(value)
+            redact_next = True
+            continue
+        env_names = names_by_value.get(value, set())
+        if any(is_sensitive_name(name) for name in env_names):
+            sanitized.append("[REDACTED]")
+        else:
+            sanitized.append(sanitize_command_url(value))
+    return sanitized
+
+
+def sanitize_command_url(value: str) -> str:
+    try:
+        parts = urlsplit(value)
+        if not parts.scheme or not parts.hostname:
+            return value
+        port = parts.port
+    except ValueError:
+        return value
+    host = parts.hostname
+    if ":" in host:
+        host = f"[{host}]"
+    netloc = host + (f":{port}" if port is not None else "")
+    query = [
+        (name, "[REDACTED]" if is_sensitive_name(name) else item)
+        for name, item in parse_qsl(parts.query, keep_blank_values=True)
+    ]
+    return urlunsplit((parts.scheme, netloc, parts.path, urlencode(query), ""))

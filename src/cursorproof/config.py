@@ -16,6 +16,18 @@ Positive = Annotated[int, Field(gt=0)]
 _ENV = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
 
+class EnvironmentSecrets(set[str]):
+    """Resolved environment values and the variable names that supplied them."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.names_by_value: dict[str, set[str]] = {}
+
+    def add_environment_value(self, name: str, value: str) -> None:
+        self.add(value)
+        self.names_by_value.setdefault(value, set()).add(name)
+
+
 class Model(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
 
@@ -223,7 +235,7 @@ def load_config(path: Path, *, resolve_env: bool = True) -> tuple[Config, set[st
         raw = json.loads(text) if path.suffix.lower() == ".json" else yaml.safe_load(text)
     except (OSError, ValueError, yaml.YAMLError):
         raise ConfigError("Cannot read or parse the configuration") from None
-    secrets: set[str] = set()
+    secrets = EnvironmentSecrets()
 
     def expand(value: object) -> object:
         if isinstance(value, str):
@@ -235,7 +247,7 @@ def load_config(path: Path, *, resolve_env: bool = True) -> tuple[Config, set[st
                 if name not in os.environ or not os.environ[name]:
                     raise ConfigError(f"Required environment variable is missing or empty: {name}")
                 secret = os.environ[name]
-                secrets.add(secret)
+                secrets.add_environment_value(name, secret)
                 return secret
 
             return _ENV.sub(replace, value)
@@ -266,4 +278,5 @@ def load_config(path: Path, *, resolve_env: bool = True) -> tuple[Config, set[st
     secrets.update(config.headers.values())
     if config.oracle:
         secrets.update(config.oracle.headers.values())
-    return config, secrets - {""}
+    secrets.discard("")
+    return config, secrets

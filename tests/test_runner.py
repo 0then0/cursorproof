@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -7,7 +8,7 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from cursorproof.checks import analyze
-from cursorproof.config import Config
+from cursorproof.config import Config, load_config
 from cursorproof.models import Item, Page, Trace, Traversal
 from cursorproof.privacy import replay_fingerprint
 from cursorproof.runner import run
@@ -611,6 +612,17 @@ def test_x_key_query_parameter_is_redacted_from_saved_trace() -> None:
     assert "x-key=%5BREDACTED%5D" in report.trace.traversals[0].pages[0].request
 
 
+@pytest.mark.parametrize("name", ["apikey", "APIKey", "accesskey", "clientkey"])
+def test_unseparated_api_key_query_names_are_redacted(name: str) -> None:
+    secret = "cp-review-unseparated-key-456"
+    report = run(
+        config(url=f"https://api.test/orders?{name}={secret}", limits=[1]),
+        transport=scripted([page([])]),
+    )
+
+    assert secret not in report.trace.model_dump_json()
+
+
 def test_author_query_parameter_is_preserved_in_saved_trace() -> None:
     report = run(
         config(url="https://api.test/orders?author=alice", limits=[1]),
@@ -640,6 +652,52 @@ def test_replay_fingerprint_does_not_commit_oracle_command_secrets() -> None:
 
     assert replay_fingerprint(previous, {"1234"}) == replay_fingerprint(current, {"9876"})
     assert "1234" not in replay_fingerprint(previous, {"1234"})
+
+
+def test_replay_fingerprint_redacts_literal_sensitive_command_argument() -> None:
+    previous = config(oracle={"command": ["oracle", "--pin=1234"]})
+    current = config(oracle={"command": ["oracle", "--pin=9876"]})
+
+    assert replay_fingerprint(previous) == replay_fingerprint(current)
+
+
+def test_replay_fingerprint_redacts_sensitive_environment_command_argument(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "url": "https://api.test/orders",
+                "limits": [1],
+                "oracle": {"command": [sys.executable, "-c", "print('[]')", "${ORACLE_PIN}"]},
+            }
+        )
+    )
+    monkeypatch.setenv("ORACLE_PIN", "1234")
+    previous, previous_secrets = load_config(config_path)
+    monkeypatch.setenv("ORACLE_PIN", "9876")
+    current, current_secrets = load_config(config_path)
+
+    assert replay_fingerprint(previous, previous_secrets) == replay_fingerprint(
+        current, current_secrets
+    )
+    report = run(previous, secrets=previous_secrets, transport=scripted([page([])]))
+    assert report.trace.replay_fingerprint == replay_fingerprint(previous, previous_secrets)
+
+
+def test_replay_fingerprint_removes_credentials_from_command_url() -> None:
+    previous = config(oracle={"command": ["oracle", "postgresql://user:old-secret@db.test/orders"]})
+    current = config(oracle={"command": ["oracle", "postgresql://user:new-secret@db.test/orders"]})
+
+    assert replay_fingerprint(previous) == replay_fingerprint(current)
+
+
+def test_replay_fingerprint_keeps_dataset_command_argument() -> None:
+    previous = config(oracle={"command": ["oracle", "--dataset", "longdataset"]})
+    current = config(oracle={"command": ["oracle", "--dataset", "short"]})
+
+    assert replay_fingerprint(previous) != replay_fingerprint(current)
 
 
 def test_oracle_command_secret_is_not_stored_in_report() -> None:

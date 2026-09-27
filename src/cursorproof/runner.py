@@ -348,8 +348,8 @@ def command_output(command: list[str], timeout: float, cwd: Path, max_bytes: int
             except BaseException:
                 if process.poll() is None:
                     _kill_process_tree(process)
-                process.stdout.close()
-                reader.join(timeout=1)
+                # A detached descendant may still hold the pipe open. The daemon reader
+                # must not make timeout handling wait for that descendant to exit.
                 raise
             if process.returncode != 0:
                 raise ExecutionError("Oracle command failed")
@@ -433,9 +433,6 @@ def run_mutations(config: Config, page: int, cwd: Path, trace: Trace) -> None:
                 if process.poll() is None:
                     _kill_process_tree(process)
                 raise
-            finally:
-                process.stdout.close()
-                reader.join(timeout=1)
         except OSError:
             raise ExecutionError("Mutation hook could not execute or timed out") from None
         if return_code:
@@ -617,7 +614,7 @@ def run(
     redactor = Redactor(secret_values)
     trace = Trace(
         tool_version=__version__,
-        replay_fingerprint=replay_fingerprint(config, secret_values),
+        replay_fingerprint=replay_fingerprint(config, secrets),
         consistency=config.consistency,
         ordering_fields=[redactor.text(field.field) for field in config.ordering],
         binding_reject_statuses=(
