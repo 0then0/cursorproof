@@ -110,7 +110,9 @@ def _kill_process_tree(process: subprocess.Popen[bytes]) -> None:
         process.wait()
 
 
-def _wait_for_process_tree(process: subprocess.Popen[bytes], timeout: float) -> int:
+def _wait_for_process_tree(
+    process: subprocess.Popen[bytes], timeout: float, output_finished: threading.Event | None = None
+) -> int:
     deadline = time.monotonic() + timeout
     while process.poll() is None:
         remaining = deadline - time.monotonic()
@@ -129,6 +131,12 @@ def _wait_for_process_tree(process: subprocess.Popen[bytes], timeout: float) -> 
                 _kill_process_tree(process)
                 raise subprocess.TimeoutExpired(process.args, timeout)
             time.sleep(min(0.01, remaining))
+    while output_finished is not None and not output_finished.is_set():
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            _kill_process_tree(process)
+            raise subprocess.TimeoutExpired(process.args, timeout)
+        output_finished.wait(min(0.01, remaining))
     return return_code
 
 
@@ -150,6 +158,16 @@ def _copy_bounded_output(
                 return
     except Exception:
         failed.set()
+
+
+def _drain_output(source: BinaryIO, finished: threading.Event, failed: threading.Event) -> None:
+    try:
+        while source.read(64 * 1024):
+            pass
+    except OSError:
+        failed.set()
+    finally:
+        finished.set()
 
 
 class ExecutionError(ValueError):
@@ -391,12 +409,23 @@ def run_mutations(config: Config, page: int, cwd: Path, trace: Trace) -> None:
                 hook.command,
                 cwd=cwd,
                 stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,
                 **cast(Any, _popen_options()),
             )
+            output_finished = threading.Event()
+            output_failed = threading.Event()
+            assert process.stdout is not None
+            reader = threading.Thread(
+                target=_drain_output,
+                args=(process.stdout, output_finished, output_failed),
+                daemon=True,
+            )
+            reader.start()
             try:
-                return_code = _wait_for_process_tree(process, hook.timeout)
+                return_code = _wait_for_process_tree(process, hook.timeout, output_finished)
+                if output_failed.is_set():
+                    raise ExecutionError("Could not verify mutation hook completion")
             except subprocess.TimeoutExpired:
                 _kill_process_tree(process)
                 raise ExecutionError("Mutation hook could not execute or timed out") from None
@@ -404,6 +433,9 @@ def run_mutations(config: Config, page: int, cwd: Path, trace: Trace) -> None:
                 if process.poll() is None:
                     _kill_process_tree(process)
                 raise
+            finally:
+                process.stdout.close()
+                reader.join(timeout=1)
         except OSError:
             raise ExecutionError("Mutation hook could not execute or timed out") from None
         if return_code:
@@ -585,7 +617,7 @@ def run(
     redactor = Redactor(secret_values)
     trace = Trace(
         tool_version=__version__,
-        replay_fingerprint=replay_fingerprint(config),
+        replay_fingerprint=replay_fingerprint(config, secret_values),
         consistency=config.consistency,
         ordering_fields=[redactor.text(field.field) for field in config.ordering],
         binding_reject_statuses=(

@@ -6,12 +6,30 @@ from uuid import uuid4
 
 from cursorproof.config import Identity
 
-_SENSITIVE = re.compile(
-    r"token|secret|password|authorization|auth|api[_-]?key|access[_-]?key|"
-    r"credential|signature|(^|[_-])sig($|[_-])|session|cookie|jwt|^key$|"
-    r"(^|[_-])(?:api|access|client|private|secret)[_-]?key($|[_-])|^x-key$",
-    re.I,
-)
+_SENSITIVE_PARTS = {
+    "auth",
+    "authorization",
+    "cookie",
+    "credential",
+    "jwt",
+    "password",
+    "secret",
+    "session",
+    "sig",
+    "signature",
+    "token",
+}
+_SENSITIVE_KEY_PREFIXES = {"access", "api", "client", "private", "secret", "x"}
+
+
+def is_sensitive_name(name: str) -> bool:
+    parts = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", name).lower().replace("-", "_").split("_")
+    if any(part in _SENSITIVE_PARTS for part in parts):
+        return True
+    return name.lower() == "key" or any(
+        prefix in _SENSITIVE_KEY_PREFIXES and parts[index + 1] == "key"
+        for index, prefix in enumerate(parts[:-1])
+    )
 
 
 class Redactor:
@@ -69,7 +87,7 @@ class Redactor:
         for name, item in parse_qsl(parts.query, keep_blank_values=True):
             if name == cursor_param:
                 safe = self.cursor(item) or ""
-            elif _SENSITIVE.search(name):
+            elif is_sensitive_name(name):
                 safe = "[REDACTED]"
             else:
                 safe = self.text(item)
@@ -77,8 +95,8 @@ class Redactor:
         return self.text(urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), "")))
 
 
-def replay_fingerprint(config: object) -> str:
-    """Hash the replay contract, omitting only values in known credential fields."""
+def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str:
+    """Hash the replay contract while omitting credentials from commands and headers."""
     from cursorproof.config import Config
 
     if not isinstance(config, Config):
@@ -88,21 +106,28 @@ def replay_fingerprint(config: object) -> str:
         if isinstance(value, dict):
             if field == "headers":
                 return {
-                    name: "[REDACTED]" if _SENSITIVE.search(name) else item
+                    name: "[REDACTED]" if is_sensitive_name(name) else item
                     for name, item in value.items()
                 }
             return {key: sanitize(item, key) for key, item in value.items()}
         if isinstance(value, list):
+            if field == "command":
+                return [
+                    redact_command_argument(item, secrets or set())
+                    if isinstance(item, str)
+                    else sanitize(item)
+                    for item in value
+                ]
             return [sanitize(item) for item in value]
         if isinstance(value, str):
             if field == "url":
                 parts = urlsplit(value)
                 query = [
-                    (name, "[REDACTED]" if _SENSITIVE.search(name) else item)
+                    (name, "[REDACTED]" if is_sensitive_name(name) else item)
                     for name, item in parse_qsl(parts.query, keep_blank_values=True)
                 ]
                 value = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), ""))
-            elif field is not None and _SENSITIVE.search(field):
+            elif field is not None and is_sensitive_name(field):
                 return "[REDACTED]"
             return value
         return value
@@ -110,3 +135,9 @@ def replay_fingerprint(config: object) -> str:
     payload = sanitize(config.model_dump(mode="json"))
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def redact_command_argument(value: str, secrets: set[str]) -> str:
+    for secret in sorted((item for item in secrets if item), key=len, reverse=True):
+        value = value.replace(secret, "[REDACTED]")
+    return value

@@ -113,7 +113,10 @@ class Report(Model):
 def parse_trace(data: bytes) -> Trace:
     import json
 
-    value = json.loads(data)
+    try:
+        value = json.loads(data)
+    except (ValueError, UnicodeError, RecursionError):
+        raise ValueError("Trace is not valid JSON") from None
     if not isinstance(value, dict):
         raise ValueError("Trace must be a JSON object")
     version = value.get("schema_version")
@@ -123,12 +126,18 @@ def parse_trace(data: bytes) -> Trace:
         legacy = dict(value)
         legacy["schema_version"] = 2
         legacy["bindings"] = []
-        errors = list(legacy.get("errors", []))
+        raw_errors = legacy.get("errors", [])
+        errors = list(raw_errors) if isinstance(raw_errors, list) else []
+        if not isinstance(raw_errors, list):
+            errors.append({"message": "Legacy trace errors field is invalid"})
         if legacy.get("consistency") == "snapshot":
             errors.append({"message": "Legacy snapshot trace lacks full-record snapshot evidence"})
-        if value.get("bindings"):
+        raw_bindings = value.get("bindings", [])
+        if not isinstance(raw_bindings, list):
+            errors.append({"message": "Legacy trace bindings field is invalid"})
+        elif raw_bindings:
             errors.append({"message": "Legacy binding trace lacks a successful baseline response"})
-            legacy["binding_cases_expected"] = len(value["bindings"])
+            legacy["binding_cases_expected"] = len(raw_bindings)
         legacy["errors"] = errors
         return Trace.model_validate(legacy)
     return Trace.model_validate(value)

@@ -194,7 +194,7 @@ def replay(
                 output_format,
             )
             return
-        if replay_fingerprint(parsed) != recorded.replay_fingerprint:
+        if replay_fingerprint(parsed, secrets) != recorded.replay_fingerprint:
             fail("Replay configuration contract does not match the saved trace", output_format)
             return
         selected = recorded.traversals[traversal_number - 1]

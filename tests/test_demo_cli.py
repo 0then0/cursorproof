@@ -202,6 +202,54 @@ def test_live_replay_rejects_changed_env_stream_parameter(tmp_path: Path, monkey
     execute.assert_not_called()
 
 
+def test_live_replay_rejects_changed_author_filter(tmp_path: Path) -> None:
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(
+            200,
+            json={
+                "results": [
+                    {"id": item}
+                    for item in ([2, 1] if request.url.params["author"] == "alice" else [1, 2])
+                ],
+                "next_cursor": None,
+            },
+        )
+    )
+    original = Config.model_validate(
+        {
+            "url": "https://api.test/orders?author=alice",
+            "limits": [2],
+            "ordering": [{"field": "id", "direction": "asc"}],
+        }
+    )
+    original_report = run(original, transport=transport)
+    assert "CP004" in {finding.code for finding in original_report.findings}
+    trace = tmp_path / "trace.json"
+    trace.write_text(original_report.trace.model_dump_json())
+    config = tmp_path / "config.json"
+    config.write_text(
+        json.dumps(
+            {
+                "url": "https://api.test/orders?author=bob",
+                "limits": [2],
+                "ordering": [{"field": "id", "direction": "asc"}],
+            }
+        )
+    )
+
+    with patch(
+        "cursorproof.cli.execute",
+        side_effect=lambda parsed, **kwargs: run(parsed, transport=transport),
+    ) as execute:
+        result = CliRunner().invoke(
+            app, ["replay", str(trace), "--config", str(config), "--format", "json"]
+        )
+
+    assert result.exit_code == 2
+    assert "contract does not match" in result.stdout
+    execute.assert_not_called()
+
+
 def test_live_replay_client_setup_error_is_safe_json(tmp_path: Path, monkeypatch) -> None:
     config_path = tmp_path / "config.json"
     config_path.write_text(json.dumps({"url": "https://api.test/orders", "limits": [1]}))

@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import httpx
@@ -610,6 +611,15 @@ def test_x_key_query_parameter_is_redacted_from_saved_trace() -> None:
     assert "x-key=%5BREDACTED%5D" in report.trace.traversals[0].pages[0].request
 
 
+def test_author_query_parameter_is_preserved_in_saved_trace() -> None:
+    report = run(
+        config(url="https://api.test/orders?author=alice", limits=[1]),
+        transport=scripted([page([])]),
+    )
+
+    assert "author=alice" in report.trace.traversals[0].pages[0].request
+
+
 def test_replay_fingerprint_allows_rotating_authentication_header() -> None:
     previous = config(headers={"Authorization": "Bearer old-secret"})
     current = config(headers={"Authorization": "Bearer new-secret"})
@@ -624,6 +634,30 @@ def test_replay_fingerprint_allows_rotating_x_key_header() -> None:
     assert replay_fingerprint(previous) == replay_fingerprint(current)
 
 
+def test_replay_fingerprint_does_not_commit_oracle_command_secrets() -> None:
+    previous = config(oracle={"command": ["oracle", "--pin=1234"]})
+    current = config(oracle={"command": ["oracle", "--pin=9876"]})
+
+    assert replay_fingerprint(previous, {"1234"}) == replay_fingerprint(current, {"9876"})
+    assert "1234" not in replay_fingerprint(previous, {"1234"})
+
+
+def test_oracle_command_secret_is_not_stored_in_report() -> None:
+    secret = "1234"
+    report = run(
+        config(
+            oracle={
+                "command": [sys.executable, "-c", "print('[]')", f"--pin={secret}"],
+            }
+        ),
+        secrets={secret},
+        transport=httpx.MockTransport(lambda request: httpx.Response(200, json=page([]))),
+    )
+
+    assert report.exit_code == 0
+    assert secret not in report.model_dump_json()
+
+
 def test_replay_fingerprint_includes_non_auth_header_values() -> None:
     previous = config(headers={"X-Tenant": "tenant-a"})
     current = config(headers={"X-Tenant": "tenant-b"})
@@ -634,6 +668,13 @@ def test_replay_fingerprint_includes_non_auth_header_values() -> None:
 def test_sort_key_query_parameter_is_not_redacted_or_ignored() -> None:
     previous = config(url="https://api.test/orders?sort_key=created_at")
     current = config(url="https://api.test/orders?sort_key=id")
+
+    assert replay_fingerprint(previous) != replay_fingerprint(current)
+
+
+def test_author_query_parameter_is_not_redacted_or_ignored() -> None:
+    previous = config(url="https://api.test/orders?author=alice")
+    current = config(url="https://api.test/orders?author=bob")
 
     assert replay_fingerprint(previous) != replay_fingerprint(current)
 

@@ -94,6 +94,33 @@ def test_replay_rejects_unsupported_trace(tmp_path: Path) -> None:
     assert json.loads(result.stdout)["outcome"] == "error"
 
 
+@pytest.mark.parametrize(
+    "trace_content",
+    [
+        '{"schema_version":1,"errors":null}',
+        '{"schema_version":1,"bindings":null}',
+    ],
+)
+def test_replay_reports_malformed_legacy_fields_safely(tmp_path: Path, trace_content: str) -> None:
+    path = tmp_path / "trace.json"
+    path.write_text(trace_content)
+
+    result = runner.invoke(app, ["replay", str(path), "--format", "json"])
+
+    assert result.exit_code == 2
+    assert json.loads(result.stdout)["outcome"] == "error"
+
+
+def test_replay_reports_deeply_nested_json_safely(tmp_path: Path) -> None:
+    path = tmp_path / "trace.json"
+    path.write_text("[" * 2000 + "0" + "]" * 2000)
+
+    result = runner.invoke(app, ["replay", str(path), "--format", "json"])
+
+    assert result.exit_code == 2
+    assert json.loads(result.stdout)["outcome"] == "error"
+
+
 def legacy_trace(consistency: str = "static", bindings: list[dict[str, object]] | None = None):
     return {
         "schema_version": 1,

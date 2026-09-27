@@ -135,8 +135,11 @@ oracle:
 
 Commands are argument arrays, executed without a shell, relative to the config's
 directory. A command inherits the process environment. Command stderr is not
-included in reports. Use `format: json` (default) to preserve integer IDs; a lines
-oracle always produces string IDs. JSON oracles can use `items` and `id` paths.
+included in reports. Oracle commands and mutation hooks must wait for their work
+to finish and must not detach child processes. A timeout may not stop a descendant
+that starts a new session or redirects the supervisor's output streams. Use
+`format: json` (default) to preserve integer IDs; a lines oracle always produces
+string IDs. JSON oracles can use `items` and `id` paths.
 Duplicate oracle IDs are an oracle error. Oracle credentials/cookies are isolated
 from the pagination client. Set `ordered: false` for set equality, still checking
 API duplicates separately.
@@ -197,7 +200,6 @@ mutations:
 Hooks on a terminal page do not execute. An unreachable hook, command failure,
 timeout, or traversal budget produces an incomplete/error result. Hooks execute
 real commands: run these configurations against controlled test environments.
-Hooks must wait for child work to finish and must not daemonize mutation work.
 There is no automatic dataset reset, fixture generation, or scenario shrinking.
 Hypothesis is used to test CursorProof's own invariants and boundary cases.
 

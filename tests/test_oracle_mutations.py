@@ -212,7 +212,10 @@ def test_mutation_waits_for_foreground_child_work(tmp_path: Path) -> None:
         f"import time; from pathlib import Path; time.sleep(.1); "
         f"Path({str(marker)!r}).write_text('done')"
     )
-    parent = f"import subprocess,sys; subprocess.Popen([sys.executable,'-c',{child!r}])"
+    parent = (
+        f"import subprocess,sys; "
+        f"subprocess.Popen([sys.executable,'-c',{child!r}],start_new_session=True)"
+    )
     config_with_hook = config(
         consistency="snapshot",
         response={"snapshot_fields": ["$"]},
