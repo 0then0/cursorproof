@@ -191,12 +191,16 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object] |
     sanitized: list[object] = []
     redact_next = False
     redact_dsn_next = False
+    value_follows_option = False
     for value in command:
         if not isinstance(value, str):
             sanitized.append(value)
             redact_next = False
             redact_dsn_next = False
+            value_follows_option = False
             continue
+        follows_option = value_follows_option
+        value_follows_option = False
         dsn_option = _DSN_OPTION.fullmatch(value)
         if dsn_option:
             dsn_value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", dsn_option.group(2))
@@ -204,7 +208,7 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object] |
         elif redact_dsn_next:
             value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
             redact_dsn_next = False
-        else:
+        elif not follows_option:
             value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
         if redact_next:
             sanitized.append("[REDACTED]")
@@ -228,6 +232,8 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object] |
             sanitized.append("[REDACTED]")
         else:
             sanitized.append(sanitize_command_url(value))
+        if value.startswith("-") and "=" not in value:
+            value_follows_option = True
     # A plain secret set has no source locations. If any value remains after
     # structural redaction, it may be a secret embedded in unrelated data.
     if not isinstance(secrets, EnvironmentSecrets) and any(

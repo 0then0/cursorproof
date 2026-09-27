@@ -538,6 +538,7 @@ def test_live_replay_requires_opt_in_before_oracle_command(tmp_path: Path) -> No
         ("longdataset", "short"),
         ("tenant-abc", "tenant-def"),
         ("tenant-token=abc", "tenant-token=def"),
+        ("token=abc", "token=def"),
     ],
 )
 def test_live_replay_rejects_changed_oracle_dataset_environment(
@@ -572,7 +573,8 @@ def test_live_replay_rejects_changed_oracle_dataset_environment(
                         sys.executable,
                         "-c",
                         "import json,sys; print(json.dumps("
-                        "[1,2] if len(sys.argv[1]) > 5 else [1]))",
+                        "[1,2] if len(sys.argv[2]) > 5 else [1]))",
+                        "--dataset",
                         "${DATASET}",
                         "--pin=${ORACLE_PIN}",
                     ]
