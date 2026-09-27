@@ -5,6 +5,7 @@ import pytest
 from pydantic import ValidationError
 from typer.testing import CliRunner
 
+from cursorproof import __version__
 from cursorproof.cli import app
 from cursorproof.config import Config, ConfigError, load_config
 from cursorproof.paths import extract
@@ -16,7 +17,7 @@ def test_cli_help_and_version() -> None:
     assert runner.invoke(app, ["--help"]).exit_code == 0
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
-    assert "0.1.0" in result.stdout
+    assert __version__ in result.stdout
 
 
 def test_config_defaults_and_check(tmp_path: Path) -> None:
