@@ -150,9 +150,13 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str |
                                 preserve_credential_like.add(index)
                         else:
                             command.append(item)
-                    return sanitize_command(
+                    sanitized = sanitize_command(
                         command, set(), preserve_credential_like=preserve_credential_like
                     )
+                    if sanitized is None:
+                        fingerprint_safe = False
+                        return []
+                    return sanitized
                 sanitized = sanitize_command(value, secrets or set())
                 if sanitized is None:
                     fingerprint_safe = False

@@ -1098,6 +1098,33 @@ def test_command_provenance_preserves_token_like_dataset_values(tmp_path, monkey
     )
 
 
+def test_ambiguous_literal_command_value_disables_loaded_fingerprint(tmp_path, monkeypatch):
+    path = tmp_path / "config.json"
+    path.write_text(
+        json.dumps(
+            {
+                "url": "https://api.test/orders",
+                "oracle": {"command": ["oracle", "--pin=${PIN}", "token=abc"]},
+            }
+        )
+    )
+    monkeypatch.setenv("PIN", "abc")
+    previous, previous_secrets = load_config(path)
+    path.write_text(
+        json.dumps(
+            {
+                "url": "https://api.test/orders",
+                "oracle": {"command": ["oracle", "--pin=${PIN}", "token=def"]},
+            }
+        )
+    )
+    monkeypatch.setenv("PIN", "def")
+    changed, changed_secrets = load_config(path)
+
+    assert replay_fingerprint(previous, previous_secrets) is None
+    assert replay_fingerprint(changed, changed_secrets) is None
+
+
 def test_boundary_and_unexpected_items_have_distinct_codes():
     report = run(
         config(oracle={"command": [sys.executable, "-c", "print('[2]')"]}),

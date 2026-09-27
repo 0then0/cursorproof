@@ -532,6 +532,77 @@ def test_live_replay_requires_opt_in_before_oracle_command(tmp_path: Path) -> No
     assert not marker.exists()
 
 
+def test_live_replay_rejects_ambiguous_literal_oracle_argument(tmp_path: Path, monkeypatch) -> None:
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            body = b'{"results":[{"id":1}],"next_cursor":null}'
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, format: str, *args: object) -> None:
+            pass
+
+    monkeypatch.setenv("NO_PROXY", "127.0.0.1")
+    monkeypatch.setenv("PIN", "abc")
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    thread = Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
+    thread.start()
+    config = tmp_path / "config.json"
+    trace = tmp_path / "trace.json"
+    marker = tmp_path / "oracle-ran"
+    config.write_text(
+        json.dumps(
+            {
+                "url": f"http://127.0.0.1:{server.server_port}/orders",
+                "limits": [1],
+                "oracle": {
+                    "command": [
+                        sys.executable,
+                        "-c",
+                        f"open({str(marker)!r}, 'w').close(); print('[1]')",
+                        "--pin=${PIN}",
+                        "token=abc",
+                    ]
+                },
+            }
+        )
+    )
+    try:
+        initial = CliRunner().invoke(
+            app, ["run", str(config), "--format", "json", "--repro", str(trace)]
+        )
+        assert initial.exit_code == 0, initial.output
+        assert json.loads(trace.read_text())["replay_fingerprint"] is None
+
+        marker.unlink()
+        monkeypatch.setenv("PIN", "def")
+        updated_config = json.loads(config.read_text())
+        updated_config["oracle"]["command"][-1] = "token=def"
+        config.write_text(json.dumps(updated_config))
+        replay = CliRunner().invoke(
+            app,
+            [
+                "replay",
+                str(trace),
+                "--config",
+                str(config),
+                "--execute-hooks",
+                "--format",
+                "json",
+            ],
+        )
+        assert replay.exit_code == 2
+        assert "lacks replay contract evidence" in replay.stdout
+        assert not marker.exists()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
+
+
 @pytest.mark.parametrize(
     ("old_dataset", "new_dataset"),
     [
