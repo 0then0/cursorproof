@@ -152,6 +152,9 @@ def run(
 def boundary(
     config: Annotated[Path, typer.Argument(help="YAML or JSON configuration.")],
     output_format: Annotated[Format, typer.Option("--format")] = Format.text,
+    repro: Annotated[Path, typer.Option(help="Path for the first failing scenario trace.")] = Path(
+        "cursorproof-boundary-repro.json"
+    ),
 ) -> None:
     """Run API traversals with fixture sizes around each configured limit."""
     try:
@@ -161,16 +164,32 @@ def boundary(
         return
     if parsed.boundary_testing is None:
         fail("Configuration must define boundary_testing setup and cleanup commands", output_format)
+    if repro.resolve() == config.resolve():
+        fail("Reproduction path must differ from configuration path", output_format)
     try:
         report = run_boundaries(parsed, cwd=config.resolve().parent, secrets=secrets)
     except (OSError, ValueError):
         fail("Cannot initialize boundary tests", output_format)
         return
+    failing_case = next(
+        (case for case in report.cases if case.outcome != "pass" and case.report is not None),
+        None,
+    )
+    if failing_case is not None:
+        failing_report = failing_case.report
+        assert failing_report is not None
+        try:
+            save_trace(failing_report.trace, repro)
+        except OSError:
+            fail("Cannot write boundary reproduction trace", output_format)
+        report.repro_path = str(repro)
     if output_format == Format.json:
         typer.echo(report.model_dump_json(indent=2))
     else:
         console = Console(markup=False, highlight=False)
         console.print(f"CursorProof boundary: {report.outcome.upper()}")
+        if report.repro_path:
+            console.print(f"Reproduction trace: {report.repro_path}")
         for case in report.cases:
             observed = "not run" if case.observed_items is None else str(case.observed_items)
             console.print(

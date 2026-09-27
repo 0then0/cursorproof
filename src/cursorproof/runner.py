@@ -738,6 +738,8 @@ def run_boundaries(
                 _run_boundary_command(setup, boundary.timeout, cwd)
                 case_config = config.model_copy(update={"limits": [limit], "repeats": 1})
                 report = run(case_config, cwd=cwd, secrets=secrets, transport=transport)
+                report.trace.expected_unique_items = count
+                report = analyze(report.trace)
             except (ExecutionError, OSError, ValueError) as exc:
                 error = str(exc) if isinstance(exc, ExecutionError) else "Boundary scenario failed"
         finally:

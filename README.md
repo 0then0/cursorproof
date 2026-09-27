@@ -220,6 +220,9 @@ deduplicating repeated sizes. The `{count}` placeholder is replaced with the tar
 size. Each case gets a fresh traversal and oracle read; cleanup runs after every case.
 The fixture commands must create exactly the requested population and restore a safe
 state when cleanup runs. Boundary tests execute real commands and can change data.
+The first failing scenario is saved to `cursorproof-boundary-repro.json` by default;
+use `--repro PATH` to choose another file. Replay it offline with
+`cursorproof replay PATH`.
 
 ## Cursor binding
 

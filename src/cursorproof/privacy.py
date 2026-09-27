@@ -21,6 +21,11 @@ _SENSITIVE_PARTS = {
     "token",
 }
 _SENSITIVE_KEY_PREFIXES = {"access", "api", "client", "private", "secret", "x"}
+_COMMAND_CREDENTIAL = re.compile(
+    r"(?i)(\b(?:password|passwd|pass|token|secret|credential|"
+    r"(?:api|access|client)[_-]?(?:key|secret)|sslpassword)\s*=\s*)"
+    r"([^\s;&]+)"
+)
 
 
 def is_sensitive_name(name: str) -> bool:
@@ -138,6 +143,22 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str:
 
 def sanitize_command(command: list[object], secrets: set[str]) -> list[object]:
     names_by_value = getattr(secrets, "names_by_value", {})
+    command_secrets = {
+        secret
+        for secret in secrets
+        if not names_by_value.get(secret)
+        or any(is_sensitive_name(name) for name in names_by_value[secret])
+    }
+    secret_variants = sorted(
+        {
+            variant
+            for secret in command_secrets
+            if secret
+            for variant in (secret, quote(secret, safe=""), quote_plus(secret))
+        },
+        key=len,
+        reverse=True,
+    )
     sanitized: list[object] = []
     redact_next = False
     for value in command:
@@ -145,6 +166,9 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object]:
             sanitized.append(value)
             redact_next = False
             continue
+        value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
+        for secret in secret_variants:
+            value = value.replace(secret, "[REDACTED]")
         if redact_next:
             sanitized.append("[REDACTED]")
             redact_next = False

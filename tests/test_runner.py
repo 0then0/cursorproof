@@ -740,6 +740,51 @@ def test_run_fingerprint_redacts_environment_database_url_inside_option(
     assert report.trace.replay_fingerprint == replay_fingerprint(changed_credential)
 
 
+def test_replay_fingerprint_redacts_password_inside_keyword_dsn(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "url": "https://api.test/orders",
+                "limits": [1],
+                "oracle": {
+                    "command": [
+                        sys.executable,
+                        "-c",
+                        "print('[]')",
+                        "--dsn=password=${DB_PASSWORD} dbname=orders",
+                    ]
+                },
+            }
+        )
+    )
+    monkeypatch.setenv("DB_PASSWORD", "1234")
+    previous, previous_secrets = load_config(config_path)
+    monkeypatch.setenv("DB_PASSWORD", "9876")
+    current, current_secrets = load_config(config_path)
+
+    assert replay_fingerprint(previous, previous_secrets) == replay_fingerprint(
+        current, current_secrets
+    )
+    changed_database = current.model_copy(
+        update={
+            "oracle": current.oracle.model_copy(
+                update={
+                    "command": [
+                        *current.oracle.command[:-1],
+                        "--dsn=password=9876 dbname=customers",
+                    ]
+                }
+            )
+        }
+    )
+    assert replay_fingerprint(current, current_secrets) != replay_fingerprint(
+        changed_database, current_secrets
+    )
+
+
 def test_replay_fingerprint_keeps_dataset_command_argument() -> None:
     previous = config(oracle={"command": ["oracle", "--dataset", "longdataset"]})
     current = config(oracle={"command": ["oracle", "--dataset", "short"]})
@@ -911,6 +956,9 @@ def test_boundary_runner_prepares_cardinality_cases_and_detects_wrong_count(
     assert report.outcome == "fail"
     assert report.cases[3].observed_items == 2
     assert report.cases[3].outcome == "fail"
+    assert report.cases[3].report is not None
+    assert analyze(report.cases[3].report.trace).outcome == "fail"
+    assert any(finding.code == "CP010" for finding in report.cases[3].report.findings)
     assert not marker.exists()
 
 

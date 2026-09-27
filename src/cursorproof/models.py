@@ -57,6 +57,7 @@ class Trace(Model):
     schema_version: Literal[2] = 2
     tool_version: str
     replay_fingerprint: str | None = None
+    expected_unique_items: int | None = Field(default=None, ge=0)
     consistency: Literal["static", "snapshot", "live-keyset"]
     ordering_fields: list[str] = Field(default_factory=list)
     traversals: list[Traversal] = Field(min_length=1)
@@ -122,6 +123,7 @@ class BoundaryCase(Model):
 class BoundaryReport(Model):
     outcome: Literal["pass", "fail", "error"]
     cases: list[BoundaryCase] = Field(min_length=1)
+    repro_path: str | None = None
 
     @property
     def exit_code(self) -> int:
