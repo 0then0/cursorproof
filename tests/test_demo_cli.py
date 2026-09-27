@@ -205,7 +205,7 @@ def test_boundary_failure_saves_trace_that_offline_replay_fails(
         json.dumps(
             {
                 "url": f"http://127.0.0.1:{server.server_port}/orders",
-                "limits": [2],
+                "limits": [2, 3],
                 "boundary_testing": {
                     "setup": [
                         sys.executable,
@@ -239,6 +239,27 @@ def test_boundary_failure_saves_trace_that_offline_replay_fails(
         replayed = json.loads(replay.stdout)
         assert replayed["findings"][0]["code"] == "CP010"
         assert replayed["trace"]["expected_unique_items"] == 3
+        live_without_hooks = runner.invoke(
+            app,
+            ["replay", str(trace), "--config", str(config), "--format", "json"],
+        )
+        assert live_without_hooks.exit_code == 2
+        live = runner.invoke(
+            app,
+            [
+                "replay",
+                str(trace),
+                "--config",
+                str(config),
+                "--execute-hooks",
+                "--format",
+                "json",
+            ],
+        )
+        assert live.exit_code == 1, live.stdout
+        live_report = json.loads(live.stdout)
+        assert live_report["findings"][0]["code"] == "CP010"
+        assert not marker.exists()
     finally:
         server.shutdown()
         server.server_close()

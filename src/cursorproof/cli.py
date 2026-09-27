@@ -15,7 +15,7 @@ from cursorproof.checks import analyze
 from cursorproof.config import ConfigError, load_config
 from cursorproof.models import Report, Trace, parse_trace
 from cursorproof.privacy import Redactor, replay_fingerprint
-from cursorproof.runner import build_request, run_boundaries
+from cursorproof.runner import ExecutionError, _run_boundary_command, build_request, run_boundaries
 from cursorproof.runner import run as execute
 
 app = typer.Typer(
@@ -251,10 +251,19 @@ def replay(
                 output_format,
             )
             return
-        if replay_fingerprint(parsed, secrets) != recorded.replay_fingerprint:
+        selected = recorded.traversals[traversal_number - 1]
+        fingerprint_config = parsed
+        is_boundary_replay = recorded.expected_unique_items is not None
+        if is_boundary_replay:
+            if parsed.boundary_testing is None:
+                fail("Boundary replay requires its fixture configuration", output_format)
+                return
+            fingerprint_config = parsed.model_copy(
+                update={"limits": [selected.limit], "repeats": 1}
+            )
+        if replay_fingerprint(fingerprint_config, secrets) != recorded.replay_fingerprint:
             fail("Replay configuration contract does not match the saved trace", output_format)
             return
-        selected = recorded.traversals[traversal_number - 1]
         if not selected.pages:
             fail("Selected traversal has no recorded request to match", output_format)
             return
@@ -280,7 +289,11 @@ def replay(
                 output_format,
             )
             return
-        has_commands = bool(parsed.mutations) or bool(parsed.oracle and parsed.oracle.command)
+        has_commands = (
+            bool(parsed.mutations)
+            or bool(parsed.oracle and parsed.oracle.command)
+            or is_boundary_replay
+        )
         if has_commands and not execute_hooks:
             fail(
                 "Live replay has configured commands; pass --execute-hooks to run them",
@@ -299,7 +312,40 @@ def replay(
                 "repeats": 1,
             }
         )
-        report = execute(replay_config, cwd=config.resolve().parent, secrets=secrets)
+        if is_boundary_replay:
+            boundary = parsed.boundary_testing
+            assert boundary is not None
+            setup = [
+                argument.replace("{count}", str(recorded.expected_unique_items)).replace(
+                    "{limit}", str(selected.limit)
+                )
+                for argument in boundary.setup
+            ]
+            replay_error: str | None = None
+            boundary_report: Report | None = None
+            try:
+                _run_boundary_command(setup, boundary.timeout, config.resolve().parent)
+                boundary_report = execute(
+                    replay_config, cwd=config.resolve().parent, secrets=secrets
+                )
+                boundary_report.trace.expected_unique_items = recorded.expected_unique_items
+                boundary_report = analyze(boundary_report.trace)
+            except (ExecutionError, OSError, ValueError):
+                replay_error = "Cannot prepare or run boundary fixtures for live replay"
+            finally:
+                try:
+                    _run_boundary_command(
+                        boundary.cleanup, boundary.timeout, config.resolve().parent
+                    )
+                except ExecutionError:
+                    replay_error = "Boundary fixture cleanup failed during live replay"
+            if replay_error is not None:
+                fail(replay_error, output_format)
+                return
+            assert boundary_report is not None
+            report = boundary_report
+        else:
+            report = execute(replay_config, cwd=config.resolve().parent, secrets=secrets)
         report.notes.append(
             f"Live replay of saved traversal {traversal_number}; results may differ "
             "if API data or external state changed."

@@ -222,7 +222,9 @@ The fixture commands must create exactly the requested population and restore a 
 state when cleanup runs. Boundary tests execute real commands and can change data.
 The first failing scenario is saved to `cursorproof-boundary-repro.json` by default;
 use `--repro PATH` to choose another file. Replay it offline with
-`cursorproof replay PATH`.
+`cursorproof replay PATH`. Live replay with `--config` also requires
+`--execute-hooks`; it prepares the saved fixture size, reruns the traversal, and then
+cleans up.
 
 ## Cursor binding
 

@@ -24,7 +24,7 @@ _SENSITIVE_KEY_PREFIXES = {"access", "api", "client", "private", "secret", "x"}
 _COMMAND_CREDENTIAL = re.compile(
     r"(?i)(\b(?:password|passwd|pass|token|secret|credential|"
     r"(?:api|access|client)[_-]?(?:key|secret)|sslpassword)\s*=\s*)"
-    r"([^\s;&]+)"
+    r"(?:'[^']*'|\"[^\"]*\"|[^\s;&]+)"
 )
 
 
@@ -166,9 +166,9 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object]:
             sanitized.append(value)
             redact_next = False
             continue
-        value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
         for secret in secret_variants:
             value = value.replace(secret, "[REDACTED]")
+        value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
         if redact_next:
             sanitized.append("[REDACTED]")
             redact_next = False

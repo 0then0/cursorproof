@@ -740,8 +740,15 @@ def test_run_fingerprint_redacts_environment_database_url_inside_option(
     assert report.trace.replay_fingerprint == replay_fingerprint(changed_credential)
 
 
+@pytest.mark.parametrize(
+    ("old_password", "new_password"),
+    [("1234", "9876"), ("12&34 secret", "98&34 other")],
+)
 def test_replay_fingerprint_redacts_password_inside_keyword_dsn(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    old_password: str,
+    new_password: str,
 ) -> None:
     config_path = tmp_path / "config.json"
     config_path.write_text(
@@ -754,15 +761,15 @@ def test_replay_fingerprint_redacts_password_inside_keyword_dsn(
                         sys.executable,
                         "-c",
                         "print('[]')",
-                        "--dsn=password=${DB_PASSWORD} dbname=orders",
+                        "--dsn=password='${DB_PASSWORD}' dbname=orders",
                     ]
                 },
             }
         )
     )
-    monkeypatch.setenv("DB_PASSWORD", "1234")
+    monkeypatch.setenv("DB_PASSWORD", old_password)
     previous, previous_secrets = load_config(config_path)
-    monkeypatch.setenv("DB_PASSWORD", "9876")
+    monkeypatch.setenv("DB_PASSWORD", new_password)
     current, current_secrets = load_config(config_path)
 
     assert replay_fingerprint(previous, previous_secrets) == replay_fingerprint(
@@ -774,7 +781,7 @@ def test_replay_fingerprint_redacts_password_inside_keyword_dsn(
                 update={
                     "command": [
                         *current.oracle.command[:-1],
-                        "--dsn=password=9876 dbname=customers",
+                        f"--dsn=password='{new_password}' dbname=customers",
                     ]
                 }
             )
