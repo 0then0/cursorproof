@@ -55,7 +55,6 @@ def analyze(trace: Trace) -> Report:
         cycle = False
         for expected_page, page in enumerate(traversal.pages, 1):
             here = Location(traversal=run_number, page=page.number)
-            prior_item_keys = set(seen_items)
             if page.number != expected_page or page.cursor != cursor:
                 errors.append(Issue(message="Trace has inconsistent page/cursor linkage"))
             if not 200 <= page.status < 300:
@@ -123,8 +122,7 @@ def analyze(trace: Trace) -> Report:
             if next_cursor is not None:
                 page_state = cursor_page_state(next_cursor, [item.id for item in page.items])
                 previous_page = seen_page_states.get(page_state)
-                no_new_items = all(identity_key(item.id) in prior_item_keys for item in page.items)
-                if previous_page is not None and no_new_items and next_cursor == page.cursor:
+                if previous_page is not None and next_cursor == page.cursor:
                     cycle = True
                     findings.append(
                         Finding(
@@ -137,7 +135,7 @@ def analyze(trace: Trace) -> Report:
                             locations=[here],
                         )
                     )
-                elif previous_page is not None and no_new_items:
+                elif previous_page is not None:
                     cycle = True
                     findings.append(
                         Finding(

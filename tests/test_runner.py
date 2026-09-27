@@ -63,6 +63,17 @@ def test_self_repeating_cursor_requires_repeated_stagnant_page() -> None:
     assert analyze(report.trace) == report
 
 
+def test_repeated_empty_page_state_stops_as_cycle() -> None:
+    report = run(
+        config(),
+        transport=scripted([page([], "opaque"), page([], "opaque"), page([1])]),
+    )
+    assert report.exit_code == 1
+    assert report.summary.pages == 2
+    assert {"CP001"} == codes(report)
+    assert analyze(report.trace) == report
+
+
 def test_cursor_value_cycle_with_new_items_is_followed() -> None:
     report = run(
         config(),

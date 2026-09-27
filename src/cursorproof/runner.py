@@ -513,7 +513,6 @@ def traverse(
 ) -> None:
     cursor: str | None = None
     seen_page_states: dict[CursorPageState, int] = {}
-    seen_item_ids: set[tuple[type[str] | type[int], Identity]] = set()
     rows: list[RawItem] = []
     current_page = 1
     try:
@@ -582,12 +581,10 @@ def traverse(
             page_ids = [row.item.id for row in page_rows]
             page_state = cursor_page_state(next_cursor, page_ids)
             previous_page = seen_page_states.get(page_state)
-            no_new_items = all(identity_key(item_id) in seen_item_ids for item_id in page_ids)
-            if previous_page is not None and no_new_items:
+            if previous_page is not None:
                 traversal.stop = "cycle"
                 break
             seen_page_states.setdefault(page_state, current_page)
-            seen_item_ids.update(identity_key(item_id) for item_id in page_ids)
             if current_page == config.max_pages:
                 traversal.stop = "budget"
                 break
