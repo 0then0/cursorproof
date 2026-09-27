@@ -115,14 +115,17 @@ class Redactor:
         return self.text(urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), "")))
 
 
-def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str:
+def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str | None:
     """Hash the replay contract while omitting credentials from commands and headers."""
     if not isinstance(config, Config):
         raise TypeError("Expected a validated CursorProof configuration")
 
+    fingerprint_safe = True
+
     def sanitize(
         value: object, field: str | None = None, location: tuple[str | int, ...] = ()
     ) -> object:
+        nonlocal fingerprint_safe
         if isinstance(value, dict):
             if field == "headers":
                 return {
@@ -138,7 +141,11 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str:
                         recorded = secrets.command_values.get((*location, index))
                         command.append(recorded[1] if recorded and recorded[0] == item else item)
                     return sanitize_command(command, set())
-                return sanitize_command(value, secrets or set())
+                sanitized = sanitize_command(value, secrets or set())
+                if sanitized is None:
+                    fingerprint_safe = False
+                    return []
+                return sanitized
             return [sanitize(item, location=(*location, index)) for index, item in enumerate(value)]
         if isinstance(value, str):
             if field == "url":
@@ -153,12 +160,15 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str:
             return value
         return value
 
-    payload = {"contract_version": 2, "config": sanitize(config.model_dump(mode="json"))}
+    sanitized_config = sanitize(config.model_dump(mode="json"))
+    if not fingerprint_safe:
+        return None
+    payload = {"contract_version": 2, "config": sanitized_config}
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def sanitize_command(command: list[object], secrets: set[str]) -> list[object]:
+def sanitize_command(command: list[object], secrets: set[str]) -> list[object] | None:
     names_by_value = getattr(secrets, "names_by_value", {})
     command_secrets = {
         secret
@@ -183,8 +193,6 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object]:
             sanitized.append(value)
             redact_next = False
             continue
-        for secret in secret_variants:
-            value = value.replace(secret, "[REDACTED]")
         value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
         if redact_next:
             sanitized.append("[REDACTED]")
@@ -204,6 +212,14 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object]:
             sanitized.append("[REDACTED]")
         else:
             sanitized.append(sanitize_command_url(value))
+    # A plain secret set has no source locations. If any value remains after
+    # structural redaction, it may be a secret embedded in unrelated data.
+    if not isinstance(secrets, EnvironmentSecrets) and any(
+        isinstance(value, str) and variant in value
+        for value in sanitized
+        for variant in secret_variants
+    ):
+        return None
     return sanitized
 
 

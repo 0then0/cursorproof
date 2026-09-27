@@ -317,8 +317,10 @@ Custom authentication schemes with unrecognized names cannot be detected automat
 For file-loaded configurations, command fingerprints preserve sensitive environment substitutions,
 so rotating a PIN cannot hide a change to an unrelated dataset argument. Keep dataset
 selection in a separate, non-secret variable rather than embedding it in credentials.
-Programmatic callers should pass both values returned by `load_config` to `run`;
-a plain secret set lacks substitution locations and uses conservative value redaction.
+Programmatic callers should pass both values returned by `load_config` to `run`.
+When a plain secret set is used and a secret remains in an unclassified command value,
+the trace has no live-replay fingerprint; offline replay remains available. This avoids
+both hiding unrelated command data and exposing a guessable hash of a short secret.
 Ordinary query parameter values also affect the fingerprint, including values expanded
 from environment variables, so changing a tenant or filter rejects live replay.
 Trace schema version 2 migrates version 1 static traces. Older snapshot and cursor-binding

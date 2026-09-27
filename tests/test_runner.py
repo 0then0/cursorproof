@@ -654,6 +654,14 @@ def test_replay_fingerprint_does_not_commit_oracle_command_secrets() -> None:
     assert "1234" not in replay_fingerprint(previous, {"1234"})
 
 
+def test_unlocated_command_secret_disables_live_replay_fingerprint() -> None:
+    previous = config(oracle={"command": ["oracle", "--pin=abc", "--dataset=tenant-abc"]})
+    changed = config(oracle={"command": ["oracle", "--pin=def", "--dataset=tenant-def"]})
+
+    assert replay_fingerprint(previous, {"abc"}) is None
+    assert replay_fingerprint(changed, {"def"}) is None
+
+
 def test_replay_fingerprint_redacts_literal_sensitive_command_argument() -> None:
     previous = config(oracle={"command": ["oracle", "--pin=1234"]})
     current = config(oracle={"command": ["oracle", "--pin=9876"]})
