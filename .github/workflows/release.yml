@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing version tag to release
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -13,6 +19,8 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           version: '0.12.18'
@@ -24,7 +32,7 @@ jobs:
       - run: uv run pytest
       - name: Check tag matches package version
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         run: |
           uv run python - <<'PY'
           import os
@@ -60,32 +68,36 @@ jobs:
 
   github-release:
     needs: build
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-26.04
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-distributions
           path: dist
       - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            assets="$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name')"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            assets="$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name')"
             for distribution in dist/*; do
               name="${distribution##*/}"
               if ! printf '%s\n' "$assets" | grep -Fxq -- "$name"; then
-                gh release upload "$GITHUB_REF_NAME" "$distribution"
+                gh release upload "$RELEASE_TAG" "$distribution"
               fi
             done
           else
-            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes
+            gh release create "$RELEASE_TAG" dist/* --verify-tag --generate-notes
           fi
 
   pypi-publish:
     needs: build
+    if: github.event_name == 'push'
     runs-on: ubuntu-26.04
     environment:
       name: pypi
@@ -93,7 +105,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-distributions
           path: dist
