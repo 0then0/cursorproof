@@ -7,6 +7,7 @@ from threading import Thread
 from unittest.mock import patch
 
 import httpx
+import pytest
 from typer.testing import CliRunner
 
 from cursorproof.cli import app
@@ -237,7 +238,7 @@ def test_boundary_failure_saves_trace_that_offline_replay_fails(
         replay = runner.invoke(app, ["replay", str(trace), "--format", "json"])
         assert replay.exit_code == 1, replay.stdout
         replayed = json.loads(replay.stdout)
-        assert replayed["findings"][0]["code"] == "CP010"
+        assert replayed["findings"][0]["code"] == "CP012"
         assert replayed["trace"]["expected_unique_items"] == 3
         live_without_hooks = runner.invoke(
             app,
@@ -258,7 +259,7 @@ def test_boundary_failure_saves_trace_that_offline_replay_fails(
         )
         assert live.exit_code == 1, live.stdout
         live_report = json.loads(live.stdout)
-        assert live_report["findings"][0]["code"] == "CP010"
+        assert live_report["findings"][0]["code"] == "CP012"
         assert not marker.exists()
     finally:
         server.shutdown()
@@ -531,8 +532,12 @@ def test_live_replay_requires_opt_in_before_oracle_command(tmp_path: Path) -> No
     assert not marker.exists()
 
 
+@pytest.mark.parametrize(
+    ("old_dataset", "new_dataset"),
+    [("longdataset", "short"), ("tenant-abc", "tenant-def")],
+)
 def test_live_replay_rejects_changed_oracle_dataset_environment(
-    tmp_path: Path, monkeypatch
+    tmp_path: Path, monkeypatch, old_dataset: str, new_dataset: str
 ) -> None:
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
@@ -551,7 +556,8 @@ def test_live_replay_rejects_changed_oracle_dataset_environment(
     thread.start()
     config = tmp_path / "config.json"
     trace = tmp_path / "trace.json"
-    monkeypatch.setenv("DATASET", "longdataset")
+    monkeypatch.setenv("DATASET", old_dataset)
+    monkeypatch.setenv("ORACLE_PIN", "abc")
     config.write_text(
         json.dumps(
             {
@@ -564,6 +570,7 @@ def test_live_replay_rejects_changed_oracle_dataset_environment(
                         "import json,sys; print(json.dumps("
                         "[1,2] if len(sys.argv[1]) > 5 else [1]))",
                         "${DATASET}",
+                        "--pin=${ORACLE_PIN}",
                     ]
                 },
             }
@@ -576,7 +583,8 @@ def test_live_replay_rejects_changed_oracle_dataset_environment(
         assert initial.exit_code == 1
         assert any(finding["code"] == "CP003" for finding in json.loads(initial.stdout)["findings"])
 
-        monkeypatch.setenv("DATASET", "short")
+        monkeypatch.setenv("DATASET", new_dataset)
+        monkeypatch.setenv("ORACLE_PIN", "def")
         replay = CliRunner().invoke(
             app,
             [
@@ -595,3 +603,80 @@ def test_live_replay_rejects_changed_oracle_dataset_environment(
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+def test_live_replay_accepts_rotated_pin_despite_display_url_redaction(tmp_path, monkeypatch):
+    config = tmp_path / "config.json"
+    trace = tmp_path / "trace.json"
+    config.write_text(
+        json.dumps(
+            {
+                "url": "http://127.0.0.1:8000/orders",
+                "limits": [1],
+                "oracle": {"command": [sys.executable, "-c", "print('[]')", "--pin=${PIN}"]},
+            }
+        )
+    )
+    monkeypatch.setenv("PIN", "12")
+    parsed, secrets = load_config(config)
+    report = run(
+        parsed,
+        secrets=secrets,
+        transport=httpx.MockTransport(
+            lambda _: httpx.Response(200, json={"results": [], "next_cursor": None})
+        ),
+    )
+    assert "[REDACTED]7.0.0.1" in report.trace.traversals[0].pages[0].request
+    trace.write_text(report.trace.model_dump_json())
+    monkeypatch.setenv("PIN", "34")
+    with patch("cursorproof.cli.execute", return_value=report) as execute:
+        result = CliRunner().invoke(
+            app, ["replay", str(trace), "--config", str(config), "--execute-hooks"]
+        )
+    assert result.exit_code == 0, result.stdout
+    execute.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "auth",
+    [
+        {"headers": {"Authorization": "Bearer old"}},
+        {"headers": {"Cookie": "session=old"}},
+        {"parameters": {"api_key": "old"}},
+        {"url": "https://api.test/orders?token=old"},
+        {"oracle": {"url": "https://api.test/oracle", "headers": {"Authorization": "Bearer old"}}},
+        {"oracle": {"url": "https://api.test/oracle?token=old"}},
+    ],
+)
+def test_live_replay_requires_explicit_auth_scope_acceptance(tmp_path, auth):
+    config = tmp_path / "config.json"
+    trace = tmp_path / "trace.json"
+    values = {"url": "https://api.test/orders", "limits": [1], **auth}
+    parsed = Config.model_validate(values)
+    report = run(
+        parsed,
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                200,
+                json=[] if request.url.path == "/oracle" else {"results": [], "next_cursor": None},
+            )
+        ),
+    )
+    assert report.exit_code == 0
+    trace.write_text(report.trace.model_dump_json())
+    # Rotated credentials may select another principal, despite matching fingerprints.
+    config.write_text(json.dumps(values).replace("old", "new"))
+    args = ["replay", str(trace), "--config", str(config), "--format", "json"]
+    with patch("cursorproof.cli.execute", return_value=report) as execute:
+        rejected = CliRunner().invoke(app, args)
+        assert rejected.exit_code == 2, rejected.stdout
+        assert "--allow-unverified-auth-scope" in rejected.stdout
+        execute.assert_not_called()
+        accepted = CliRunner().invoke(app, [*args, "--allow-unverified-auth-scope"])
+        assert accepted.exit_code == 0, accepted.stdout
+        execute.assert_called_once()
+        assert any(
+            "scope were not verified" in note for note in json.loads(accepted.stdout)["notes"]
+        )
+    offline = CliRunner().invoke(app, ["replay", str(trace), "--allow-unverified-auth-scope"])
+    assert offline.exit_code == 2

@@ -4,7 +4,7 @@ import re
 from urllib.parse import parse_qsl, quote, quote_plus, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
-from cursorproof.config import Identity
+from cursorproof.config import Config, EnvironmentSecrets, Identity
 
 _SENSITIVE_PARTS = {
     "auth",
@@ -38,6 +38,17 @@ def is_sensitive_name(name: str) -> bool:
     return name.lower() == "key" or any(
         prefix in _SENSITIVE_KEY_PREFIXES and parts[index + 1] == "key"
         for index, prefix in enumerate(parts[:-1])
+    )
+
+
+def has_http_credentials(config: Config) -> bool:
+    sources = [(config.url, config.headers, config.parameters)]
+    if config.oracle:
+        sources.append((config.oracle.url or "", config.oracle.headers, {}))
+    return any(
+        is_sensitive_name(name)
+        for url, headers, parameters in sources
+        for name in [*headers, *parameters, *(key for key, _ in parse_qsl(urlsplit(url).query))]
     )
 
 
@@ -106,23 +117,29 @@ class Redactor:
 
 def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str:
     """Hash the replay contract while omitting credentials from commands and headers."""
-    from cursorproof.config import Config
-
     if not isinstance(config, Config):
         raise TypeError("Expected a validated CursorProof configuration")
 
-    def sanitize(value: object, field: str | None = None) -> object:
+    def sanitize(
+        value: object, field: str | None = None, location: tuple[str | int, ...] = ()
+    ) -> object:
         if isinstance(value, dict):
             if field == "headers":
                 return {
                     name: "[REDACTED]" if is_sensitive_name(name) else item
                     for name, item in value.items()
                 }
-            return {key: sanitize(item, key) for key, item in value.items()}
+            return {key: sanitize(item, key, (*location, key)) for key, item in value.items()}
         if isinstance(value, list):
             if field in {"command", "setup", "cleanup"}:
+                if isinstance(secrets, EnvironmentSecrets):
+                    command = []
+                    for index, item in enumerate(value):
+                        recorded = secrets.command_values.get((*location, index))
+                        command.append(recorded[1] if recorded and recorded[0] == item else item)
+                    return sanitize_command(command, set())
                 return sanitize_command(value, secrets or set())
-            return [sanitize(item) for item in value]
+            return [sanitize(item, location=(*location, index)) for index, item in enumerate(value)]
         if isinstance(value, str):
             if field == "url":
                 parts = urlsplit(value)
@@ -136,7 +153,7 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str:
             return value
         return value
 
-    payload = sanitize(config.model_dump(mode="json"))
+    payload = {"contract_version": 2, "config": sanitize(config.model_dump(mode="json"))}
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 

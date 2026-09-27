@@ -201,6 +201,10 @@ Hooks on a terminal page do not execute. An unreachable hook, command failure,
 timeout, or traversal budget produces an incomplete/error result. Hooks execute
 real commands: run these configurations against controlled test environments. A
 timeout stops the command's process group; commands must not leave detached descendants.
+This is command timeout handling, not process isolation or rollback. A detached process
+can escape both its process group and parent PID ancestry before cleanup. Run commands
+that cannot honor this contract inside an externally managed disposable container or
+OS sandbox with a lifetime limit. CursorProof does not install or manage such isolation.
 There is no built-in dataset reset adapter or scenario shrinking. The opt-in
 boundary command below uses fixture commands supplied by the API owner.
 Hypothesis is used to test CursorProof's own invariants and boundary cases.
@@ -265,6 +269,7 @@ proving that the cursor is bound.
 - `CP009 INCONSISTENT_TRAVERSAL`: complete streams differ across runs.
 - `CP010 UNEXPECTED_ITEMS`: returned identities are absent from the oracle.
 - `CP011 SNAPSHOT_CONTENT_CHANGED`: a selected record field differs from the initial oracle.
+- `CP012 BOUNDARY_CARDINALITY_MISMATCH`: unique item count differs from the prepared fixture size.
 
 Findings contain locations and affected IDs where available. An ordered oracle
 locates missing intervals between the nearest observed neighbours. These bound the
@@ -304,12 +309,25 @@ can rotate; other header values remain part of the replay contract.
 Because rotated credentials can represent a different principal or tenant, keep the
 authorization scope stable and express tenant or dataset selection in a non-secret
 header or query parameter so live replay can compare it.
+Live replay detects credential header and query names in the API and HTTP oracle
+configuration and refuses to run unless you pass `--allow-unverified-auth-scope`.
+Use this flag only after independently confirming the same principal and scope.
+The flag records that scope was not verified; it does not validate token identity.
+Custom authentication schemes with unrecognized names cannot be detected automatically.
+For file-loaded configurations, command fingerprints preserve sensitive environment substitutions,
+so rotating a PIN cannot hide a change to an unrelated dataset argument. Keep dataset
+selection in a separate, non-secret variable rather than embedding it in credentials.
+Programmatic callers should pass both values returned by `load_config` to `run`;
+a plain secret set lacks substitution locations and uses conservative value redaction.
 Ordinary query parameter values also affect the fingerprint, including values expanded
 from environment variables, so changing a tenant or filter rejects live replay.
 Trace schema version 2 migrates version 1 static traces. Older snapshot and cursor-binding
 traces replay as incomplete because they lack the evidence those checks now require.
 Older version 2 traces without a replay fingerprint remain available for offline replay
 but cannot be live-replayed safely.
+Traces with the older configuration fingerprint algorithm remain available for offline
+replay; generate a fresh trace for live replay with the current contract algorithm.
+Live replay compares that contract, not the display URL, which may contain redactions.
 The versioned trace stores page boundaries, identity sequences, status codes,
 request descriptions, cursor aliases, and order-preserving ranks for sort values.
 It does not store full response bodies, headers, commands, or raw cursors.

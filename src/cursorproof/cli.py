@@ -5,7 +5,6 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
 
-import httpx
 import typer
 from pydantic import ValidationError
 from rich.console import Console
@@ -14,8 +13,8 @@ from cursorproof import __version__
 from cursorproof.checks import analyze
 from cursorproof.config import ConfigError, load_config
 from cursorproof.models import Report, Trace, parse_trace
-from cursorproof.privacy import Redactor, replay_fingerprint
-from cursorproof.runner import ExecutionError, _run_boundary_command, build_request, run_boundaries
+from cursorproof.privacy import has_http_credentials, replay_fingerprint
+from cursorproof.runner import ExecutionError, _run_boundary_command, run_boundaries
 from cursorproof.runner import run as execute
 
 app = typer.Typer(
@@ -218,6 +217,13 @@ def replay(
             help="Run configured oracle and mutation commands during live replay.",
         ),
     ] = False,
+    allow_unverified_auth_scope: Annotated[
+        bool,
+        typer.Option(
+            "--allow-unverified-auth-scope",
+            help="Accept that live replay cannot verify the credentials' principal or scope.",
+        ),
+    ] = False,
 ) -> None:
     """Replay recorded evidence offline, or reissue one traversal with --config."""
     try:
@@ -226,6 +232,9 @@ def replay(
         fail("Cannot read trace or unsupported/invalid trace schema", output_format)
         return
     if config is None:
+        if allow_unverified_auth_scope:
+            fail("--allow-unverified-auth-scope requires --config", output_format)
+            return
         if execute_hooks:
             fail("--execute-hooks requires --config", output_format)
             return
@@ -267,25 +276,16 @@ def replay(
         if not selected.pages:
             fail("Selected traversal has no recorded request to match", output_format)
             return
-        request_params = {
-            **parsed.parameters,
-            parsed.pagination.limit_param: selected.limit,
-        }
-        try:
-            with httpx.Client(headers=parsed.headers, follow_redirects=False) as client:
-                request = build_request(client, parsed.url, request_params)
-        except (OSError, ValueError, httpx.HTTPError, httpx.InvalidURL):
-            fail("Cannot initialize HTTP client or build the replay request", output_format)
+        if selected.limit not in parsed.limits:
+            fail("Saved traversal limit is not configured", output_format)
             return
-        redaction_secrets = set(secrets) | set(parsed.headers.values())
-        if parsed.oracle:
-            redaction_secrets.update(parsed.oracle.headers.values())
-        current_request = Redactor(redaction_secrets).url(
-            str(request.url), parsed.pagination.cursor_param
-        )
-        if current_request != selected.pages[0].request:
+        # Display URLs may redact accidental matches with a short secret. The
+        # versioned configuration fingerprint verifies the request contract.
+        unverified_auth_scope = has_http_credentials(parsed)
+        if unverified_auth_scope and not allow_unverified_auth_scope:
             fail(
-                "Replay configuration URL or query parameters do not match the saved traversal",
+                "Live replay cannot verify authentication scope; confirm it is unchanged "
+                "and pass --allow-unverified-auth-scope",
                 output_format,
             )
             return
@@ -350,5 +350,9 @@ def replay(
             f"Live replay of saved traversal {traversal_number}; results may differ "
             "if API data or external state changed."
         )
+        if unverified_auth_scope:
+            report.notes.append(
+                "Authentication principal and scope were not verified during replay."
+            )
     display(report, output_format)
     raise typer.Exit(report.exit_code)

@@ -342,7 +342,7 @@ def analyze(trace: Trace) -> Report:
     if trace.expected_unique_items is not None and len(all_ids) != trace.expected_unique_items:
         findings.append(
             Finding(
-                code="CP010",
+                code="CP012",
                 name="BOUNDARY_CARDINALITY_MISMATCH",
                 message=(
                     f"Expected {trace.expected_unique_items} unique items, observed {len(all_ids)}."

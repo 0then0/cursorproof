@@ -965,7 +965,7 @@ def test_boundary_runner_prepares_cardinality_cases_and_detects_wrong_count(
     assert report.cases[3].outcome == "fail"
     assert report.cases[3].report is not None
     assert analyze(report.cases[3].report.trace).outcome == "fail"
-    assert any(finding.code == "CP010" for finding in report.cases[3].report.findings)
+    assert any(finding.code == "CP012" for finding in report.cases[3].report.findings)
     assert not marker.exists()
 
 
@@ -1004,3 +1004,51 @@ def test_duplicate_at_generated_boundary_is_always_detected(size: int, limit: in
     pages.append(page([ids[-1]]))
     report = run(config(limits=[limit]), transport=scripted(pages))
     assert "CP002" in codes(report)
+
+
+def test_command_provenance_preserves_literals_when_credentials_rotate(tmp_path, monkeypatch):
+    path = tmp_path / "config.json"
+    path.write_text(
+        json.dumps(
+            {
+                "url": "https://api.test/orders",
+                "oracle": {
+                    "command": [
+                        "oracle",
+                        "--pin=${PIN}",
+                        "--dataset=tenant-abc",
+                        "${PIN}",
+                        "${DATASET}",
+                    ]
+                },
+                "boundary_testing": {
+                    "setup": ["fixture", "{count}", "prefix:${PIN}", "${DATASET}"],
+                    "cleanup": ["cleanup", "prefix:${PIN}", "${DATASET}"],
+                },
+            }
+        )
+    )
+    monkeypatch.setenv("PIN", "abc")
+    monkeypatch.setenv("DATASET", "abc")
+    previous, previous_secrets = load_config(path)
+    monkeypatch.setenv("PIN", "def")
+    current, current_secrets = load_config(path)
+    assert replay_fingerprint(previous, previous_secrets) == replay_fingerprint(
+        current, current_secrets
+    )
+    monkeypatch.setenv("DATASET", "def")
+    changed, changed_secrets = load_config(path)
+    assert replay_fingerprint(previous, previous_secrets) != replay_fingerprint(
+        changed, changed_secrets
+    )
+
+
+def test_boundary_and_unexpected_items_have_distinct_codes():
+    report = run(
+        config(oracle={"command": [sys.executable, "-c", "print('[2]')"]}),
+        transport=scripted([page([1])]),
+    )
+    report.trace.expected_unique_items = 2
+    findings = {finding.name: finding.code for finding in analyze(report.trace).findings}
+    assert findings["UNEXPECTED_ITEMS"] == "CP010"
+    assert findings["BOUNDARY_CARDINALITY_MISMATCH"] == "CP012"

@@ -22,6 +22,7 @@ class EnvironmentSecrets(set[str]):
     def __init__(self) -> None:
         super().__init__()
         self.names_by_value: dict[str, set[str]] = {}
+        self.command_values: dict[tuple[str | int, ...], tuple[str, str]] = {}
 
     def add_environment_value(self, name: str, value: str) -> None:
         self.add(value)
@@ -251,6 +252,8 @@ class ConfigError(ValueError):
 
 
 def load_config(path: Path, *, resolve_env: bool = True) -> tuple[Config, set[str]]:
+    from cursorproof.privacy import is_sensitive_name
+
     try:
         text = path.read_text(encoding="utf-8")
         raw = json.loads(text) if path.suffix.lower() == ".json" else yaml.safe_load(text)
@@ -258,7 +261,7 @@ def load_config(path: Path, *, resolve_env: bool = True) -> tuple[Config, set[st
         raise ConfigError("Cannot read or parse the configuration") from None
     secrets = EnvironmentSecrets()
 
-    def expand(value: object) -> object:
+    def expand(value: object, location: tuple[str | int, ...] = ()) -> object:
         if isinstance(value, str):
 
             def replace(match: re.Match[str]) -> str:
@@ -271,11 +274,27 @@ def load_config(path: Path, *, resolve_env: bool = True) -> tuple[Config, set[st
                 secrets.add_environment_value(name, secret)
                 return secret
 
-            return _ENV.sub(replace, value)
+            resolved = _ENV.sub(replace, value)
+            if (
+                resolve_env
+                and len(location) >= 2
+                and location[-2] in {"command", "setup", "cleanup"}
+            ):
+                # Preserve which fragments were secret, not just their resolved values.
+                safe = _ENV.sub(
+                    lambda match: (
+                        "[REDACTED]"
+                        if is_sensitive_name(match.group(1))
+                        else os.environ[match.group(1)]
+                    ),
+                    value,
+                )
+                secrets.command_values[location] = (resolved, safe)
+            return resolved
         if isinstance(value, dict):
-            return {key: expand(item) for key, item in value.items()}
+            return {key: expand(item, (*location, key)) for key, item in value.items()}
         if isinstance(value, list):
-            return [expand(item) for item in value]
+            return [expand(item, (*location, index)) for index, item in enumerate(value)]
         return value
 
     try:
