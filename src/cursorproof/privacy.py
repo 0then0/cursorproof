@@ -138,11 +138,21 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str |
         if isinstance(value, list):
             if field in {"command", "setup", "cleanup"}:
                 if isinstance(secrets, EnvironmentSecrets):
-                    command = []
+                    command: list[object] = []
+                    preserve_credential_like: set[int] = set()
                     for index, item in enumerate(value):
                         recorded = secrets.command_values.get((*location, index))
-                        command.append(recorded[1] if recorded and recorded[0] == item else item)
-                    return sanitize_command(command, set())
+                        if recorded and recorded[0] == item:
+                            command.append(recorded[1])
+                            if recorded[2] and not any(
+                                is_sensitive_name(name) for name in recorded[2]
+                            ):
+                                preserve_credential_like.add(index)
+                        else:
+                            command.append(item)
+                    return sanitize_command(
+                        command, set(), preserve_credential_like=preserve_credential_like
+                    )
                 sanitized = sanitize_command(value, secrets or set())
                 if sanitized is None:
                     fingerprint_safe = False
@@ -170,7 +180,12 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str |
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def sanitize_command(command: list[object], secrets: set[str]) -> list[object] | None:
+def sanitize_command(
+    command: list[object],
+    secrets: set[str],
+    *,
+    preserve_credential_like: set[int] | None = None,
+) -> list[object] | None:
     names_by_value = getattr(secrets, "names_by_value", {})
     command_secrets = {
         secret
@@ -192,7 +207,8 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object] |
     redact_next = False
     redact_dsn_next = False
     value_follows_option = False
-    for value in command:
+    preserve_credential_like = preserve_credential_like or set()
+    for index, value in enumerate(command):
         if not isinstance(value, str):
             sanitized.append(value)
             redact_next = False
@@ -201,6 +217,10 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object] |
             continue
         follows_option = value_follows_option
         value_follows_option = False
+        if redact_next:
+            sanitized.append("[REDACTED]")
+            redact_next = False
+            continue
         dsn_option = _DSN_OPTION.fullmatch(value)
         if dsn_option:
             dsn_value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", dsn_option.group(2))
@@ -208,12 +228,14 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object] |
         elif redact_dsn_next:
             value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
             redact_dsn_next = False
-        elif not follows_option:
-            value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
-        if redact_next:
-            sanitized.append("[REDACTED]")
-            redact_next = False
-            continue
+        elif (
+            index not in preserve_credential_like
+            and not follows_option
+            and _COMMAND_CREDENTIAL.match(value)
+        ):
+            # The value could be a credential or stream-defining data. Without
+            # a recognized option or substitution source, live replay is unsafe.
+            return None
         match = re.fullmatch(r"(-{1,2}[A-Za-z0-9_-]+)=(.*)", value)
         if match and is_sensitive_name(match.group(1).lstrip("-")):
             sanitized.append(f"{match.group(1)}=[REDACTED]")

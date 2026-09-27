@@ -541,8 +541,13 @@ def test_live_replay_requires_opt_in_before_oracle_command(tmp_path: Path) -> No
         ("token=abc", "token=def"),
     ],
 )
+@pytest.mark.parametrize("with_dataset_option", [False, True])
 def test_live_replay_rejects_changed_oracle_dataset_environment(
-    tmp_path: Path, monkeypatch, old_dataset: str, new_dataset: str
+    tmp_path: Path,
+    monkeypatch,
+    old_dataset: str,
+    new_dataset: str,
+    with_dataset_option: bool,
 ) -> None:
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:
@@ -561,6 +566,8 @@ def test_live_replay_rejects_changed_oracle_dataset_environment(
     thread.start()
     config = tmp_path / "config.json"
     trace = tmp_path / "trace.json"
+    dataset_position = 2 if with_dataset_option else 1
+    dataset_arguments = (["--dataset"] if with_dataset_option else []) + ["${DATASET}"]
     monkeypatch.setenv("DATASET", old_dataset)
     monkeypatch.setenv("ORACLE_PIN", "abc")
     config.write_text(
@@ -572,10 +579,9 @@ def test_live_replay_rejects_changed_oracle_dataset_environment(
                     "command": [
                         sys.executable,
                         "-c",
-                        "import json,sys; print(json.dumps("
-                        "[1,2] if len(sys.argv[2]) > 5 else [1]))",
-                        "--dataset",
-                        "${DATASET}",
+                        f"import json,sys; print(json.dumps([1,2] if "
+                        f"len(sys.argv[{dataset_position}]) > 5 else [1]))",
+                        *dataset_arguments,
                         "--pin=${ORACLE_PIN}",
                     ]
                 },

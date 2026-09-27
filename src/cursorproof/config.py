@@ -22,7 +22,7 @@ class EnvironmentSecrets(set[str]):
     def __init__(self) -> None:
         super().__init__()
         self.names_by_value: dict[str, set[str]] = {}
-        self.command_values: dict[tuple[str | int, ...], tuple[str, str]] = {}
+        self.command_values: dict[tuple[str | int, ...], tuple[str, str, tuple[str, ...]]] = {}
 
     def add_environment_value(self, name: str, value: str) -> None:
         self.add(value)
@@ -289,7 +289,8 @@ def load_config(path: Path, *, resolve_env: bool = True) -> tuple[Config, set[st
                     ),
                     value,
                 )
-                secrets.command_values[location] = (resolved, safe)
+                environment_names = tuple(match.group(1) for match in _ENV.finditer(value))
+                secrets.command_values[location] = (resolved, safe, environment_names)
             return resolved
         if isinstance(value, dict):
             return {key: expand(item, (*location, key)) for key, item in value.items()}

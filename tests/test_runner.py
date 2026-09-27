@@ -657,9 +657,18 @@ def test_replay_fingerprint_does_not_commit_oracle_command_secrets() -> None:
 def test_unlocated_command_secret_disables_live_replay_fingerprint() -> None:
     previous = config(oracle={"command": ["oracle", "--pin=abc", "--dataset", "token=abc"]})
     changed = config(oracle={"command": ["oracle", "--pin=def", "--dataset", "token=def"]})
+    positional = config(oracle={"command": ["oracle", "--pin=abc", "token=abc"]})
 
     assert replay_fingerprint(previous, {"abc"}) is None
     assert replay_fingerprint(changed, {"def"}) is None
+    assert replay_fingerprint(positional, {"abc"}) is None
+
+
+def test_sensitive_option_redacts_credential_like_separate_value() -> None:
+    previous = config(oracle={"command": ["oracle", "--pin", "token=abc"]})
+    current = config(oracle={"command": ["oracle", "--pin", "token=def"]})
+
+    assert replay_fingerprint(previous) == replay_fingerprint(current)
 
 
 def test_plain_secret_in_dsn_keeps_safe_rotation_fingerprint() -> None:
@@ -1068,7 +1077,6 @@ def test_command_provenance_preserves_token_like_dataset_values(tmp_path, monkey
                     "command": [
                         "oracle",
                         "--pin=${PIN}",
-                        "--dataset",
                         "token=${DATASET}",
                     ]
                 },
