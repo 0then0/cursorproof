@@ -22,10 +22,12 @@ _SENSITIVE_PARTS = {
 }
 _SENSITIVE_KEY_PREFIXES = {"access", "api", "client", "private", "secret", "x"}
 _COMMAND_CREDENTIAL = re.compile(
-    r"(?i)(\b(?:password|passwd|pass|token|secret|credential|"
+    r"(?i)^(\s*(?:password|passwd|pass|token|secret|credential|"
     r"(?:api|access|client)[_-]?(?:key|secret)|sslpassword)\s*=\s*)"
     r"(?:'[^']*'|\"[^\"]*\"|[^\s;&]+)"
 )
+_DSN_OPTION = re.compile(r"(?i)(--(?:dsn|dbname|database-url|connection-string|conninfo)=)(.*)")
+_DSN_OPTIONS = {"--dsn", "--dbname", "--database-url", "--connection-string", "--conninfo"}
 
 
 def is_sensitive_name(name: str) -> bool:
@@ -188,12 +190,22 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object] |
     )
     sanitized: list[object] = []
     redact_next = False
+    redact_dsn_next = False
     for value in command:
         if not isinstance(value, str):
             sanitized.append(value)
             redact_next = False
+            redact_dsn_next = False
             continue
-        value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
+        dsn_option = _DSN_OPTION.fullmatch(value)
+        if dsn_option:
+            dsn_value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", dsn_option.group(2))
+            value = dsn_option.group(1) + dsn_value
+        elif redact_dsn_next:
+            value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
+            redact_dsn_next = False
+        else:
+            value = _COMMAND_CREDENTIAL.sub(r"\1[REDACTED]", value)
         if redact_next:
             sanitized.append("[REDACTED]")
             redact_next = False
@@ -206,6 +218,10 @@ def sanitize_command(command: list[object], secrets: set[str]) -> list[object] |
         if option and is_sensitive_name(option):
             sanitized.append(value)
             redact_next = True
+            continue
+        if value.lower() in _DSN_OPTIONS:
+            sanitized.append(value)
+            redact_dsn_next = True
             continue
         env_names = names_by_value.get(value, set())
         if any(is_sensitive_name(name) for name in env_names):

@@ -655,11 +655,18 @@ def test_replay_fingerprint_does_not_commit_oracle_command_secrets() -> None:
 
 
 def test_unlocated_command_secret_disables_live_replay_fingerprint() -> None:
-    previous = config(oracle={"command": ["oracle", "--pin=abc", "--dataset=tenant-abc"]})
-    changed = config(oracle={"command": ["oracle", "--pin=def", "--dataset=tenant-def"]})
+    previous = config(oracle={"command": ["oracle", "--pin=abc", "--dataset=tenant-token=abc"]})
+    changed = config(oracle={"command": ["oracle", "--pin=def", "--dataset=tenant-token=def"]})
 
     assert replay_fingerprint(previous, {"abc"}) is None
     assert replay_fingerprint(changed, {"def"}) is None
+
+
+def test_plain_secret_in_dsn_keeps_safe_rotation_fingerprint() -> None:
+    previous = config(oracle={"command": ["oracle", "--dsn=password='old' dbname=orders"]})
+    current = config(oracle={"command": ["oracle", "--dsn=password='new' dbname=orders"]})
+
+    assert replay_fingerprint(previous, {"old"}) == replay_fingerprint(current, {"new"})
 
 
 def test_replay_fingerprint_redacts_literal_sensitive_command_argument() -> None:
@@ -1043,6 +1050,37 @@ def test_command_provenance_preserves_literals_when_credentials_rotate(tmp_path,
     current, current_secrets = load_config(path)
     assert replay_fingerprint(previous, previous_secrets) == replay_fingerprint(
         current, current_secrets
+    )
+    monkeypatch.setenv("DATASET", "def")
+    changed, changed_secrets = load_config(path)
+    assert replay_fingerprint(previous, previous_secrets) != replay_fingerprint(
+        changed, changed_secrets
+    )
+
+
+def test_command_provenance_preserves_token_like_dataset_values(tmp_path, monkeypatch):
+    path = tmp_path / "config.json"
+    path.write_text(
+        json.dumps(
+            {
+                "url": "https://api.test/orders",
+                "oracle": {
+                    "command": [
+                        "oracle",
+                        "--pin=${PIN}",
+                        "--dataset=tenant-token=${DATASET}",
+                    ]
+                },
+            }
+        )
+    )
+    monkeypatch.setenv("PIN", "abc")
+    monkeypatch.setenv("DATASET", "abc")
+    previous, previous_secrets = load_config(path)
+    monkeypatch.setenv("PIN", "def")
+    same_dataset, same_secrets = load_config(path)
+    assert replay_fingerprint(previous, previous_secrets) == replay_fingerprint(
+        same_dataset, same_secrets
     )
     monkeypatch.setenv("DATASET", "def")
     changed, changed_secrets = load_config(path)

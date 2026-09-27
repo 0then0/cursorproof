@@ -534,7 +534,11 @@ def test_live_replay_requires_opt_in_before_oracle_command(tmp_path: Path) -> No
 
 @pytest.mark.parametrize(
     ("old_dataset", "new_dataset"),
-    [("longdataset", "short"), ("tenant-abc", "tenant-def")],
+    [
+        ("longdataset", "short"),
+        ("tenant-abc", "tenant-def"),
+        ("tenant-token=abc", "tenant-token=def"),
+    ],
 )
 def test_live_replay_rejects_changed_oracle_dataset_environment(
     tmp_path: Path, monkeypatch, old_dataset: str, new_dataset: str
