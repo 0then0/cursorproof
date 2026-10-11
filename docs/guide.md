@@ -89,7 +89,10 @@ An empty page with a continuation cursor is allowed. A short page alone does not
 signal completion. Ordering is lexicographic across **all** configured fields,
 within and between pages. `type` is `auto`, `string`, `number`, or `datetime`;
 `auto` preserves JSON numbers/strings, and mixed incompatible types are errors.
-Datetime ordering requires ISO 8601 with a timezone. String ordering uses Unicode
+Datetime ordering requires ISO 8601 with a timezone. UTC `Z`, explicit offsets,
+fractional seconds, compact dates/times and ISO week dates are supported on all
+supported Python versions. Fractions longer than six digits are truncated to
+microseconds. String ordering uses Unicode
 code point order, not a database locale/collation. `nulls` is absolute, independent
 of ascending/descending direction.
 

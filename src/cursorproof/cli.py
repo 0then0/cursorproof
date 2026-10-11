@@ -1,7 +1,7 @@
 import json
 import os
 import tempfile
-from enum import StrEnum
+from enum import Enum
 from pathlib import Path
 from typing import Annotated
 
@@ -24,9 +24,12 @@ app = typer.Typer(
 )
 
 
-class Format(StrEnum):
+class Format(str, Enum):
     text = "text"
     json = "json"
+
+    def __str__(self) -> str:
+        return str(self.value)
 
 
 def version(value: bool) -> None:

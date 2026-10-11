@@ -3,7 +3,7 @@ name = "cursorproof"
 version = "0.2.0"
 description = "Check the correctness of cursor pagination across an entire REST stream."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 dependencies = [
@@ -38,15 +38,18 @@ dev = [
 testpaths = ["tests"]
 addopts = "-q"
 
+[tool.uv.dependency-groups]
+integration = { requires-python = ">=3.12" }
+
 [tool.ruff]
-target-version = "py313"
+target-version = "py310"
 line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.10"
 strict = true
 plugins = ["pydantic.mypy"]
 files = ["src"]

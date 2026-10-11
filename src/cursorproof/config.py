@@ -2,7 +2,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Annotated, Literal, Self
+from typing import Annotated, Literal, TypeAlias
 from urllib.parse import parse_qs, unquote, urlsplit
 
 import yaml
@@ -10,8 +10,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from cursorproof.paths import tokens
 
-type Parameter = str | int
-type Identity = str | int
+Parameter: TypeAlias = str | int
+Identity: TypeAlias = str | int
 Positive = Annotated[int, Field(gt=0)]
 _ENV = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
@@ -97,7 +97,7 @@ class Pagination(Model):
     terminal_values: list[str | None] = Field(default_factory=terminal_default, min_length=1)
 
     @model_validator(mode="after")
-    def distinct_names(self) -> Self:
+    def distinct_names(self) -> "Pagination":
         if not self.cursor_param or not self.limit_param or self.cursor_param == self.limit_param:
             raise ValueError("Cursor and limit parameter names must be nonempty and different")
         if self.mode == "url" and self.terminal_values != [None]:
@@ -159,7 +159,7 @@ class BoundaryTesting(Model):
     timeout: float = Field(default=30.0, gt=0)
 
     @model_validator(mode="after")
-    def commands(self) -> Self:
+    def commands(self) -> "BoundaryTesting":
         Command(command=self.setup, timeout=self.timeout)
         Command(command=self.cleanup, timeout=self.timeout)
         if not any("{count}" in argument for argument in self.setup):
@@ -181,7 +181,7 @@ class Oracle(Model):
     _headers = field_validator("headers")(http_headers)
 
     @model_validator(mode="after")
-    def source(self) -> Self:
+    def source(self) -> "Oracle":
         if (self.url is None) == (self.command is None):
             raise ValueError("Oracle requires exactly one of url or command")
         if self.url is not None:
@@ -199,7 +199,7 @@ class Binding(Model):
     reject_statuses: list[int] = Field(default_factory=lambda: [400, 409, 422], min_length=1)
 
     @model_validator(mode="after")
-    def alternatives(self) -> Self:
+    def alternatives(self) -> "Binding":
         if any(not values for values in self.parameters.values()):
             raise ValueError("Binding parameters need explicit alternative values")
         if any(not 400 <= status < 500 for status in self.reject_statuses):
@@ -231,7 +231,7 @@ class Config(Model):
     _headers = field_validator("headers")(http_headers)
 
     @model_validator(mode="after")
-    def contract(self) -> Self:
+    def contract(self) -> "Config":
         if self.pagination.mode == "url":
             url_reference(self.url)
             if self.cursor_binding is not None or self.boundary_testing is not None:

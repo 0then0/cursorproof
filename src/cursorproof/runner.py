@@ -2,15 +2,16 @@ import hashlib
 import json
 import math
 import os
+import re
 import signal
 import subprocess
 import tempfile
 import threading
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, BinaryIO, Literal, cast
+from typing import Any, BinaryIO, Literal, TypeAlias, cast
 from urllib.parse import unquote_plus, urljoin
 
 import httpx
@@ -34,7 +35,7 @@ from cursorproof.models import (
 from cursorproof.paths import extract
 from cursorproof.privacy import Redactor, replay_fingerprint
 
-type SortValue = str | int | float | datetime | None
+SortValue: TypeAlias = str | int | float | datetime | None
 
 
 def _popen_options() -> dict[str, object]:
@@ -190,6 +191,60 @@ def identity(value: object) -> Identity:
     return cast(Identity, value)
 
 
+def _iso_clock(value: str) -> str:
+    parts = re.fullmatch(r"(\d{2})(?:(:?)(\d{2})(?:\2(\d{2}))?)?(?:[.,](\d+))?", value, re.ASCII)
+    if parts is None:
+        raise ValueError("Invalid ISO 8601 clock")
+    hours, _, minutes, seconds, fraction = parts.groups()
+    clock = f"{hours}:{minutes or '00'}:{seconds or '00'}"
+    if fraction is not None:
+        clock += "." + fraction[:6].ljust(6, "0")
+    return clock
+
+
+def _iso_datetime(value: str) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        # Python 3.10 needs extended dates/times and three or six fractional digits.
+        # Normalize the additional forms accepted by fromisoformat on Python 3.11+.
+        parts = re.fullmatch(
+            r"(\d{4}-\d{2}-\d{2}|\d{8}|\d{4}-W\d{2}(?:-\d(?!\d))?|\d{4}W\d{2}\d?)"
+            r"(?:.(.+))?",
+            value,
+            re.ASCII | re.DOTALL,
+        )
+        if parts is None:
+            raise
+        day, clock = parts.groups()
+        if "W" in day:
+            week = re.fullmatch(r"(\d{4})-?W(\d{2})(?:-?(\d))?", day, re.ASCII)
+            assert week is not None
+            year, number, weekday = week.groups()
+            day = date.fromisocalendar(int(year), int(number), int(weekday or "1")).isoformat()
+        elif len(day) == 8:
+            day = f"{day[:4]}-{day[4:6]}-{day[6:]}"
+        if clock is None:
+            return datetime.fromisoformat(day)
+        time_parts = re.fullmatch(r"([^Z+-]+)(Z|[+-].+)?", clock)
+        if time_parts is None:
+            raise
+        clock, offset = time_parts.groups()
+        zone = ""
+        if offset == "Z":
+            zone = "+00:00"
+        elif offset is not None:
+            zone = offset[0] + _iso_clock(offset[1:])
+        parsed = datetime.fromisoformat(day + "T" + _iso_clock(clock) + zone)
+    # Python 3.10 drops fractional-only UTC offsets, even for otherwise supported input.
+    fraction = re.search(r"([+-])00(?::?00){0,2}[.,](\d+)$", value, re.ASCII)
+    if parsed.tzinfo is not None and fraction is not None:
+        sign, digits = fraction.groups()
+        offset_delta = timedelta(microseconds=int(digits[:6].ljust(6, "0")))
+        parsed = parsed.replace(tzinfo=timezone(offset_delta if sign == "+" else -offset_delta))
+    return parsed
+
+
 def sort_value(value: object, ordering: Ordering) -> SortValue:
     if value is None:
         return None
@@ -197,7 +252,7 @@ def sort_value(value: object, ordering: Ordering) -> SortValue:
         if not isinstance(value, str):
             raise ExecutionError("Datetime ordering requires ISO 8601 strings with timezone")
         try:
-            parsed = datetime.fromisoformat(value)
+            parsed = _iso_datetime(value)
         except ValueError:
             raise ExecutionError("Invalid ISO 8601 ordering value") from None
         if parsed.tzinfo is None:

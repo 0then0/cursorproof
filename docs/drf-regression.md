@@ -16,7 +16,9 @@ for the supported links and scope restrictions.
 
 ## Run the example
 
-Requires Python 3.13 or newer and [uv](https://docs.astral.sh/uv/). Clone the
+This example requires Python 3.12 or newer and [uv](https://docs.astral.sh/uv/).
+CursorProof itself supports Python 3.10 or newer; the integration environment
+requires Python 3.12 because it includes Django 6.1.2. Clone the
 repository and run the following commands from its root. They build CursorProof
 and install the wheel into a separate integration environment, leaving the
 checkout's `.venv` available for ordinary development:
@@ -24,7 +26,7 @@ checkout's `.venv` available for ordinary development:
 ```sh
 uv build --out-dir /tmp/cursorproof-build
 UV_PROJECT_ENVIRONMENT=/tmp/cursorproof-drf-env \
-  uv sync --locked --group integration --no-install-project
+  uv sync --locked --group integration --no-install-project --python 3.12
 uv pip install --python /tmp/cursorproof-drf-env/bin/python --no-deps \
   /tmp/cursorproof-build/cursorproof-0.2.0-py3-none-any.whl
 /tmp/cursorproof-drf-env/bin/python examples/drf_regression.py \
@@ -163,5 +165,6 @@ check. They are skipped when Django or DRF is absent. URL-mode unit tests live
 in `tests/test_url_pagination.py` and use HTTPX transports without Django.
 
 CI builds and installs the wheel, then runs the integration tests on Python
-3.13 and 3.14. To run the remaining project checks, see
+3.12 through 3.14. Core checks also run on Python 3.10 and 3.11.
+To run the remaining project checks, see
 [Development](../README.md#development).

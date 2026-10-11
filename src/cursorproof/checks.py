@@ -1,3 +1,5 @@
+from typing import TypeAlias
+
 from cursorproof.config import Identity
 from cursorproof.models import (
     BindingObservation,
@@ -9,7 +11,7 @@ from cursorproof.models import (
     Trace,
 )
 
-type CursorPageState = tuple[
+CursorPageState: TypeAlias = tuple[
     str,
     tuple[tuple[type[str] | type[int], Identity], ...],
 ]

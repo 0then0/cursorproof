@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ['3.13', '3.14']
+        python: ['3.10', '3.11', '3.12', '3.13', '3.14']
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
@@ -26,6 +26,7 @@ jobs:
       - run: uv run pytest
       - run: uv build
       - name: Real Django/DRF regression with built client
+        if: matrix.python != '3.10' && matrix.python != '3.11'
         run: |
           UV_PROJECT_ENVIRONMENT=/tmp/cursorproof-drf-env uv sync --locked --group integration --no-install-project
           uv pip install --python /tmp/cursorproof-drf-env/bin/python --no-deps dist/cursorproof-*.whl

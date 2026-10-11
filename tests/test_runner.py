@@ -1,5 +1,6 @@
 import json
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import httpx
@@ -8,10 +9,10 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from cursorproof.checks import analyze
-from cursorproof.config import Config, load_config
+from cursorproof.config import Config, Ordering, load_config
 from cursorproof.models import Item, Page, Trace, Traversal
 from cursorproof.privacy import replay_fingerprint
-from cursorproof.runner import run, run_boundaries
+from cursorproof.runner import run, run_boundaries, sort_value
 
 
 def config(**changes: object) -> Config:
@@ -175,6 +176,100 @@ def test_datetime_compares_instants_not_strings() -> None:
         transport=scripted([{"results": rows, "next_cursor": None}]),
     )
     assert report.exit_code == 0
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("2026-01-01T00:00:00Z", "2026-01-01T00:00:00+00:00"),
+        ("2026-01-01T00:00:00.1Z", "2026-01-01T00:00:00.100000+00:00"),
+        ("2026-01-01T00:00:00.12345Z", "2026-01-01T00:00:00.123450+00:00"),
+        ("2026-01-01T00:00:00.1234567Z", "2026-01-01T00:00:00.123456+00:00"),
+        ("2026-01-01T00:00:00,12Z", "2026-01-01T00:00:00.120000+00:00"),
+        ("20260101T000000Z", "2026-01-01T00:00:00+00:00"),
+        ("20260101T123456.12+0230", "2026-01-01T12:34:56.120000+02:30"),
+        ("2026-W01-4T00:00:00Z", "2026-01-01T00:00:00+00:00"),
+        ("2026W014T000000Z", "2026-01-01T00:00:00+00:00"),
+        ("2026-W01T00:00:00Z", "2025-12-29T00:00:00+00:00"),
+        ("2026-W01-12:34Z", "2025-12-29T12:34:00+00:00"),
+        ("2026-01-01T12:34Z", "2026-01-01T12:34:00+00:00"),
+        ("2026-01-01T12.1Z", "2026-01-01T12:00:00.100000+00:00"),
+        ("2026-01-01T00:00:00-02", "2026-01-01T00:00:00-02:00"),
+        ("2026-01-01T00:00:00+02:30:01.12", "2026-01-01T00:00:00+02:30:01.120000"),
+    ],
+)
+def test_datetime_formats_preserve_instants_across_python_versions(
+    value: str, expected: str
+) -> None:
+    assert sort_value(value, Ordering(field="time", type="datetime")) == datetime.fromisoformat(
+        expected
+    )
+
+
+def test_datetime_z_fractional_seconds_and_offsets_keep_order_and_replay() -> None:
+    rows = [
+        {"id": 1, "time": "2026-01-01T02:00:00.1+02:00"},
+        {"id": 2, "time": "2026-01-01T00:00:00.12Z"},
+        {"id": 3, "time": "20260101T000000.1234567+0000"},
+    ]
+    report = run(
+        config(limits=[3], ordering=[{"field": "time", "type": "datetime"}]),
+        transport=scripted([{"results": rows, "next_cursor": None}]),
+    )
+    assert report.exit_code == 0
+    assert [item.sort_key for item in report.trace.traversals[0].pages[0].items] == [[0], [1], [2]]
+    assert analyze(report.trace) == report
+    rows.reverse()
+    report = run(
+        config(limits=[3], ordering=[{"field": "time", "type": "datetime"}]),
+        transport=scripted([{"results": rows, "next_cursor": None}]),
+    )
+    assert report.exit_code == 1
+    assert codes(report) == {"CP004"}
+
+
+@pytest.mark.parametrize(
+    ("offset", "microseconds"),
+    [
+        ("+00:00:00.1", 100000),
+        ("+00:00:00.100000", 100000),
+        ("+000000.1", 100000),
+        ("-00.1", -100000),
+        ("+00:00,1234567", 123456),
+    ],
+)
+def test_datetime_preserves_fractional_only_timezone_offsets(
+    offset: str, microseconds: int
+) -> None:
+    parsed = sort_value("2026-01-01T12:00:00" + offset, Ordering(field="time", type="datetime"))
+    assert isinstance(parsed, datetime)
+    assert parsed.utcoffset() == timedelta(microseconds=microseconds)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "2026-01-01T00:00:00",
+        "20260101T000000",
+        "20260101-00.1",
+        "2026-02-30T00:00:00Z",
+        "2026-W54-1T00:00:00Z",
+        "2026-W01-0T00:00:00Z",
+        "2026-01-01T25:00:00Z",
+        "2026-01-01T12:0000Z",
+        "2026-01-01T12:00:00.Zjunk",
+        "2026-01-01T12:00:00+24:00",
+    ],
+)
+def test_datetime_invalid_or_naive_values_remain_execution_errors(value: str) -> None:
+    report = run(
+        config(ordering=[{"field": "time", "type": "datetime"}]),
+        transport=scripted([{"results": [{"id": 1, "time": value}], "next_cursor": None}]),
+    )
+    assert report.exit_code == 2
+    assert report.trace.traversals[0].stop == "error"
+    assert not report.findings
+    assert analyze(report.trace) == report
 
 
 def test_mixed_order_types_are_inconclusive() -> None:

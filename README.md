@@ -3,7 +3,7 @@
 # CursorProof
 
 [![PyPI](https://img.shields.io/pypi/v/cursorproof)](https://pypi.org/project/cursorproof/)
-[![Python](https://img.shields.io/badge/python-%3E%3D3.13-blue)](https://github.com/0then0/cursorproof/blob/main/pyproject.toml)
+[![Python](https://img.shields.io/badge/python-%3E%3D3.10-blue)](https://github.com/0then0/cursorproof/blob/main/pyproject.toml)
 [![CI](https://img.shields.io/github/actions/workflow/status/0then0/cursorproof/ci.yml?branch=main&label=checks)](https://github.com/0then0/cursorproof/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/0then0/cursorproof)](https://github.com/0then0/cursorproof/blob/main/LICENSE)
 
@@ -17,7 +17,7 @@ lets CursorProof compare the returned stream with the expected records.
 
 ## Install
 
-Requires Python 3.13 or newer.
+Requires Python 3.10 or newer.
 
 ```sh
 pipx install cursorproof
@@ -167,5 +167,6 @@ and the local demo API.
 The optional locked `integration` group adds Django/DRF for tests against a real
 HTTP endpoint. Follow the
 [integration instructions](https://github.com/0then0/cursorproof/blob/main/docs/drf-regression.md#run-the-example)
-to use a separate environment and the built wheel. CI runs the core checks and
-integration tests on Python 3.13 and 3.14.
+to use a separate environment and the built wheel. CI runs the core checks
+on Python 3.10 through 3.14. The Django/DRF integration tests require
+Python 3.12 or newer and run on Python 3.12 through 3.14.
