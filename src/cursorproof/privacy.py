@@ -103,12 +103,12 @@ class Redactor:
             self.cursors[value] = f"cursor_{len(self.cursors) + 1}"
         return self.cursors[value]
 
-    def url(self, value: str, cursor_param: str) -> str:
+    def url(self, value: str, cursor_param: str, *, continuation: str | None = None) -> str:
         parts = urlsplit(value)
         query = []
         for name, item in parse_qsl(parts.query, keep_blank_values=True):
             if name == cursor_param:
-                safe = self.cursor(item) or ""
+                safe = self.cursor(continuation if continuation is not None else item) or ""
             elif is_sensitive_name(name):
                 safe = "[REDACTED]"
             else:
@@ -176,7 +176,11 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str |
             return value
         return value
 
-    sanitized_config = sanitize(config.model_dump(mode="json"))
+    contract = config.model_dump(mode="json")
+    if config.pagination.mode == "token":
+        # Preserve the v2 fingerprints of existing token configurations.
+        del contract["pagination"]["mode"]
+    sanitized_config = sanitize(contract)
     if not fingerprint_safe:
         return None
     payload = {"contract_version": 2, "config": sanitized_config}

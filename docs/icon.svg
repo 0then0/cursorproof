@@ -1,0 +1,32 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="128"
+  height="128"
+  viewBox="0 0 128 128"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">CursorProof</title>
+  <desc id="desc">Linked pages and a checked shield represent a verified pagination stream.</desc>
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="#162237" />
+  <g fill="none" stroke="#a9b8cf" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="23" y="27" width="25" height="33" rx="5" />
+    <rect x="55" y="27" width="25" height="33" rx="5" />
+    <path d="M31 38h9m-9 10h9m23-10h9m-9 10h9M48 44h7M35 60v19h22" />
+  </g>
+  <path
+    d="M82 55l22 9v19c0 14-12 25-22 30-10-5-22-16-22-30V64z"
+    fill="#162237"
+    stroke="#59d3a4"
+    stroke-width="4"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M72 82l7 7 14-17"
+    fill="none"
+    stroke="#59d3a4"
+    stroke-width="5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

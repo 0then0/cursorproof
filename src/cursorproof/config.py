@@ -3,7 +3,7 @@ import os
 import re
 from pathlib import Path
 from typing import Annotated, Literal, Self
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -52,6 +52,31 @@ def path_field(value: str) -> str:
     return value
 
 
+def url_reference(value: str) -> str:
+    """Conservative HTTP reference syntax, shared by config and traversal."""
+    if (
+        not value
+        or not value.isascii()
+        or any(char.isspace() or not char.isprintable() for char in value)
+        or "\\" in value
+        or "#" in value
+        or any(char in '"<>^`{|}' for char in value)
+        or re.search(r"%(?![0-9A-Fa-f]{2})", value)
+    ):
+        raise ValueError("URL reference has unsupported or malformed syntax")
+    parts = urlsplit(value)
+    _ = parts.port
+    if parts.scheme and (parts.scheme.lower() not in {"http", "https"} or not parts.netloc):
+        raise ValueError("URL reference must use HTTP(S) with an authority")
+    if parts.netloc and (not parts.hostname or parts.username is not None):
+        raise ValueError("URL reference must have a host and no userinfo")
+    if re.search(r"%(?:2f|5c)", parts.path, re.IGNORECASE) or any(
+        unquote(segment) in {".", ".."} for segment in parts.path.split("/")
+    ):
+        raise ValueError("URL reference cannot contain dot segments or encoded path separators")
+    return value
+
+
 def http_headers(value: dict[str, str]) -> dict[str, str]:
     for name, content in value.items():
         if not re.fullmatch(r"[!#$%&'*+.^_`|~0-9A-Za-z-]+", name):
@@ -66,6 +91,7 @@ def terminal_default() -> list[str | None]:
 
 
 class Pagination(Model):
+    mode: Literal["token", "url"] = "token"
     cursor_param: str = "cursor"
     limit_param: str = "limit"
     terminal_values: list[str | None] = Field(default_factory=terminal_default, min_length=1)
@@ -74,6 +100,8 @@ class Pagination(Model):
     def distinct_names(self) -> Self:
         if not self.cursor_param or not self.limit_param or self.cursor_param == self.limit_param:
             raise ValueError("Cursor and limit parameter names must be nonempty and different")
+        if self.mode == "url" and self.terminal_values != [None]:
+            raise ValueError("URL mode requires terminal_values: [null]")
         return self
 
 
@@ -204,6 +232,10 @@ class Config(Model):
 
     @model_validator(mode="after")
     def contract(self) -> Self:
+        if self.pagination.mode == "url":
+            url_reference(self.url)
+            if self.cursor_binding is not None or self.boundary_testing is not None:
+                raise ValueError("URL mode does not support cursor_binding or boundary_testing")
         if len(set(self.limits)) != len(self.limits):
             raise ValueError("Limits must be unique")
         reserved = {self.pagination.cursor_param, self.pagination.limit_param}

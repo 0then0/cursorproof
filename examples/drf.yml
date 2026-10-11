@@ -1,0 +1,20 @@
+# Standard DRF CursorPagination. Configure page_size_query_param on the server.
+url: http://localhost:8000/items/
+pagination:
+  mode: url
+  cursor_param: cursor
+  limit_param: page_size
+response:
+  items: $.results
+  next_cursor: $.next
+  id: $.id
+ordering:
+  - field: id
+    type: number
+limits: [100, 250, 500]
+max_pages: 40
+max_items: 5000
+# An independent oracle is required to establish completeness. Match API scope.
+# oracle:
+#   url: http://localhost:8000/internal/items/all/
+#   items: $.ids

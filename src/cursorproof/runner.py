@@ -11,12 +11,13 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, BinaryIO, Literal, cast
+from urllib.parse import unquote_plus, urljoin
 
 import httpx
 
 from cursorproof import __version__
 from cursorproof.checks import CursorPageState, analyze, cursor_page_state, identity_key
-from cursorproof.config import Config, Identity, Oracle, Ordering, Parameter
+from cursorproof.config import Config, Identity, Oracle, Ordering, Parameter, url_reference
 from cursorproof.models import (
     BindingObservation,
     BoundaryCase,
@@ -502,6 +503,45 @@ def build_request(client: httpx.Client, url: str, params: dict[str, Parameter]) 
     return client.build_request("GET", url, params=merged)
 
 
+def continuation_url(value: str, current: httpx.URL, initial: httpx.URL, config: Config) -> str:
+    """Validate before sending; never merge or rebuild a server's opaque query."""
+    try:
+        url_reference(value)
+        resolved = urljoin(str(current), value)
+        target = httpx.URL(url_reference(resolved))
+    except (ValueError, httpx.InvalidURL):
+        raise ExecutionError("Continuation URL has unsupported or malformed syntax") from None
+
+    def origin(url: httpx.URL) -> tuple[str, str, int]:
+        port = url.port if url.port is not None else (443 if url.scheme == "https" else 80)
+        return url.scheme, url.host, port
+
+    if origin(target) != origin(initial):
+        raise ExecutionError("Continuation URL must preserve the initial origin")
+    if target.raw_path.split(b"?", 1)[0] != initial.raw_path.split(b"?", 1)[0]:
+        raise ExecutionError("Continuation URL must preserve the exact endpoint path")
+
+    def scope(url: httpx.URL) -> dict[str, list[str]]:
+        values: dict[str, list[str]] = {}
+        for field in url.query.decode("ascii").split("&"):
+            if not field:
+                continue
+            name, _, item = field.partition("=")
+            name = unquote_plus(name, errors="strict")
+            # Cursor values are opaque bytes; only scope values need UTF-8 decoding.
+            if name != config.pagination.cursor_param:
+                values.setdefault(name, []).append(unquote_plus(item, errors="strict"))
+        return values
+
+    try:
+        scope_matches = scope(target) == scope(initial)
+    except UnicodeError:
+        raise ExecutionError("Continuation URL scope must use valid UTF-8 query values") from None
+    if not scope_matches:
+        raise ExecutionError("Continuation URL must preserve scope parameters and page size")
+    return str(target)
+
+
 def traverse(
     client: httpx.Client,
     config: Config,
@@ -516,6 +556,11 @@ def traverse(
     rows: list[RawItem] = []
     current_page = 1
     try:
+        initial_request = build_request(
+            client,
+            config.url,
+            {**config.parameters, config.pagination.limit_param: traversal.limit},
+        )
         for current_page in range(1, config.max_pages + 1):
             params: dict[str, Parameter] = {
                 **config.parameters,
@@ -523,18 +568,32 @@ def traverse(
             }
             if cursor is not None:
                 params[config.pagination.cursor_param] = cursor
-            request = build_request(client, config.url, params)
+            if config.pagination.mode == "url":
+                request = (
+                    client.build_request("GET", cursor) if cursor is not None else initial_request
+                )
+            else:
+                request = build_request(client, config.url, params)
             status, body = fetch(client, request, config.max_response_bytes)
             if not 200 <= status < 300:
                 raise ExecutionError(f"Traversal returned HTTP {status}")
             payload = decode_json(body)
             values = extract(payload, config.response.items)
-            raw_cursor = extract(payload, config.response.next_cursor)
+            try:
+                raw_cursor = extract(payload, config.response.next_cursor)
+            except ValueError:
+                if config.pagination.mode == "token":
+                    raise
+                raise ExecutionError("Required continuation field is missing or invalid") from None
             if raw_cursor is not None and not isinstance(raw_cursor, str):
                 raise ExecutionError("Cursor must be a string or null")
             if raw_cursor is None and None not in config.pagination.terminal_values:
                 raise ExecutionError("Null cursor is not declared as a terminal value")
             next_cursor = None if raw_cursor in config.pagination.terminal_values else raw_cursor
+            if config.pagination.mode == "url" and next_cursor is not None:
+                next_cursor = continuation_url(
+                    next_cursor, request.url, initial_request.url, config
+                )
             has_more = (
                 extract(payload, config.response.has_more)
                 if config.response.has_more is not None
@@ -567,7 +626,11 @@ def traverse(
             traversal.pages.append(
                 Page(
                     number=current_page,
-                    request=redactor.url(str(request.url), config.pagination.cursor_param),
+                    request=redactor.url(
+                        str(request.url),
+                        config.pagination.cursor_param,
+                        continuation=cursor if config.pagination.mode == "url" else None,
+                    ),
                     cursor=redactor.cursor(cursor),
                     next_cursor=redactor.cursor(next_cursor),
                     has_more=cast(bool | None, has_more),

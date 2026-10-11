@@ -1,0 +1,799 @@
+{
+  "versions": {
+    "cursorproof": "0.2.0",
+    "Django": "6.1.2",
+    "djangorestframework": "3.18.3"
+  },
+  "python": "3.13.15",
+  "dataset": {
+    "count": 2500,
+    "active": 1,
+    "small_scope_count": 800,
+    "ordered_ids_sha256": "f3614b231909de55d9253d76b4e97ffbacc32d098c5dba68a5e2a03df8c63b47"
+  },
+  "cases": [
+    {
+      "name": "problematic-100",
+      "limit": 100,
+      "exit_code": 1,
+      "outcome": "fail",
+      "stop": "cycle",
+      "complete": false,
+      "oracle_matches": false,
+      "expected_ids": 2500,
+      "observed_ids": 1200,
+      "unique_ids": 1100,
+      "findings": {
+        "CP001": 1,
+        "CP002": 100,
+        "CP004": 1
+      },
+      "errors": [],
+      "pages": [
+        {
+          "number": 1,
+          "count": 100,
+          "first_id": 1,
+          "last_id": 100,
+          "cursor": null,
+          "next_cursor": "cursor_1"
+        },
+        {
+          "number": 2,
+          "count": 100,
+          "first_id": 101,
+          "last_id": 200,
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2"
+        },
+        {
+          "number": 3,
+          "count": 100,
+          "first_id": 201,
+          "last_id": 300,
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3"
+        },
+        {
+          "number": 4,
+          "count": 100,
+          "first_id": 301,
+          "last_id": 400,
+          "cursor": "cursor_3",
+          "next_cursor": "cursor_4"
+        },
+        {
+          "number": 5,
+          "count": 100,
+          "first_id": 401,
+          "last_id": 500,
+          "cursor": "cursor_4",
+          "next_cursor": "cursor_5"
+        },
+        {
+          "number": 6,
+          "count": 100,
+          "first_id": 501,
+          "last_id": 600,
+          "cursor": "cursor_5",
+          "next_cursor": "cursor_6"
+        },
+        {
+          "number": 7,
+          "count": 100,
+          "first_id": 601,
+          "last_id": 700,
+          "cursor": "cursor_6",
+          "next_cursor": "cursor_7"
+        },
+        {
+          "number": 8,
+          "count": 100,
+          "first_id": 701,
+          "last_id": 800,
+          "cursor": "cursor_7",
+          "next_cursor": "cursor_8"
+        },
+        {
+          "number": 9,
+          "count": 100,
+          "first_id": 801,
+          "last_id": 900,
+          "cursor": "cursor_8",
+          "next_cursor": "cursor_9"
+        },
+        {
+          "number": 10,
+          "count": 100,
+          "first_id": 901,
+          "last_id": 1000,
+          "cursor": "cursor_9",
+          "next_cursor": "cursor_10"
+        },
+        {
+          "number": 11,
+          "count": 100,
+          "first_id": 1001,
+          "last_id": 1100,
+          "cursor": "cursor_10",
+          "next_cursor": "cursor_11"
+        },
+        {
+          "number": 12,
+          "count": 100,
+          "first_id": 1001,
+          "last_id": 1100,
+          "cursor": "cursor_11",
+          "next_cursor": "cursor_11"
+        }
+      ],
+      "offline_replay_matches": true,
+      "live_replay_matches": true
+    },
+    {
+      "name": "problematic-250",
+      "limit": 250,
+      "exit_code": 1,
+      "outcome": "fail",
+      "stop": "cycle",
+      "complete": false,
+      "oracle_matches": false,
+      "expected_ids": 2500,
+      "observed_ids": 1500,
+      "unique_ids": 1250,
+      "findings": {
+        "CP001": 1,
+        "CP002": 250,
+        "CP004": 1
+      },
+      "errors": [],
+      "pages": [
+        {
+          "number": 1,
+          "count": 250,
+          "first_id": 1,
+          "last_id": 250,
+          "cursor": null,
+          "next_cursor": "cursor_1"
+        },
+        {
+          "number": 2,
+          "count": 250,
+          "first_id": 251,
+          "last_id": 500,
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2"
+        },
+        {
+          "number": 3,
+          "count": 250,
+          "first_id": 501,
+          "last_id": 750,
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3"
+        },
+        {
+          "number": 4,
+          "count": 250,
+          "first_id": 751,
+          "last_id": 1000,
+          "cursor": "cursor_3",
+          "next_cursor": "cursor_4"
+        },
+        {
+          "number": 5,
+          "count": 250,
+          "first_id": 1001,
+          "last_id": 1250,
+          "cursor": "cursor_4",
+          "next_cursor": "cursor_5"
+        },
+        {
+          "number": 6,
+          "count": 250,
+          "first_id": 1001,
+          "last_id": 1250,
+          "cursor": "cursor_5",
+          "next_cursor": "cursor_5"
+        }
+      ],
+      "offline_replay_matches": true,
+      "live_replay_matches": true
+    },
+    {
+      "name": "problematic-500",
+      "limit": 500,
+      "exit_code": 1,
+      "outcome": "fail",
+      "stop": "cycle",
+      "complete": false,
+      "oracle_matches": false,
+      "expected_ids": 2500,
+      "observed_ids": 2000,
+      "unique_ids": 1500,
+      "findings": {
+        "CP001": 1,
+        "CP002": 500,
+        "CP004": 1
+      },
+      "errors": [],
+      "pages": [
+        {
+          "number": 1,
+          "count": 500,
+          "first_id": 1,
+          "last_id": 500,
+          "cursor": null,
+          "next_cursor": "cursor_1"
+        },
+        {
+          "number": 2,
+          "count": 500,
+          "first_id": 501,
+          "last_id": 1000,
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2"
+        },
+        {
+          "number": 3,
+          "count": 500,
+          "first_id": 1001,
+          "last_id": 1500,
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3"
+        },
+        {
+          "number": 4,
+          "count": 500,
+          "first_id": 1001,
+          "last_id": 1500,
+          "cursor": "cursor_3",
+          "next_cursor": "cursor_3"
+        }
+      ],
+      "offline_replay_matches": true,
+      "live_replay_matches": true
+    },
+    {
+      "name": "control-100",
+      "limit": 100,
+      "exit_code": 0,
+      "outcome": "pass",
+      "stop": "terminal",
+      "complete": true,
+      "oracle_matches": true,
+      "expected_ids": 2500,
+      "observed_ids": 2500,
+      "unique_ids": 2500,
+      "findings": {},
+      "errors": [],
+      "pages": [
+        {
+          "number": 1,
+          "count": 100,
+          "first_id": 1,
+          "last_id": 100,
+          "cursor": null,
+          "next_cursor": "cursor_1"
+        },
+        {
+          "number": 2,
+          "count": 100,
+          "first_id": 101,
+          "last_id": 200,
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2"
+        },
+        {
+          "number": 3,
+          "count": 100,
+          "first_id": 201,
+          "last_id": 300,
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3"
+        },
+        {
+          "number": 4,
+          "count": 100,
+          "first_id": 301,
+          "last_id": 400,
+          "cursor": "cursor_3",
+          "next_cursor": "cursor_4"
+        },
+        {
+          "number": 5,
+          "count": 100,
+          "first_id": 401,
+          "last_id": 500,
+          "cursor": "cursor_4",
+          "next_cursor": "cursor_5"
+        },
+        {
+          "number": 6,
+          "count": 100,
+          "first_id": 501,
+          "last_id": 600,
+          "cursor": "cursor_5",
+          "next_cursor": "cursor_6"
+        },
+        {
+          "number": 7,
+          "count": 100,
+          "first_id": 601,
+          "last_id": 700,
+          "cursor": "cursor_6",
+          "next_cursor": "cursor_7"
+        },
+        {
+          "number": 8,
+          "count": 100,
+          "first_id": 701,
+          "last_id": 800,
+          "cursor": "cursor_7",
+          "next_cursor": "cursor_8"
+        },
+        {
+          "number": 9,
+          "count": 100,
+          "first_id": 801,
+          "last_id": 900,
+          "cursor": "cursor_8",
+          "next_cursor": "cursor_9"
+        },
+        {
+          "number": 10,
+          "count": 100,
+          "first_id": 901,
+          "last_id": 1000,
+          "cursor": "cursor_9",
+          "next_cursor": "cursor_10"
+        },
+        {
+          "number": 11,
+          "count": 100,
+          "first_id": 1001,
+          "last_id": 1100,
+          "cursor": "cursor_10",
+          "next_cursor": "cursor_11"
+        },
+        {
+          "number": 12,
+          "count": 100,
+          "first_id": 1101,
+          "last_id": 1200,
+          "cursor": "cursor_11",
+          "next_cursor": "cursor_12"
+        },
+        {
+          "number": 13,
+          "count": 100,
+          "first_id": 1201,
+          "last_id": 1300,
+          "cursor": "cursor_12",
+          "next_cursor": "cursor_13"
+        },
+        {
+          "number": 14,
+          "count": 100,
+          "first_id": 1301,
+          "last_id": 1400,
+          "cursor": "cursor_13",
+          "next_cursor": "cursor_14"
+        },
+        {
+          "number": 15,
+          "count": 100,
+          "first_id": 1401,
+          "last_id": 1500,
+          "cursor": "cursor_14",
+          "next_cursor": "cursor_15"
+        },
+        {
+          "number": 16,
+          "count": 100,
+          "first_id": 1501,
+          "last_id": 1600,
+          "cursor": "cursor_15",
+          "next_cursor": "cursor_16"
+        },
+        {
+          "number": 17,
+          "count": 100,
+          "first_id": 1601,
+          "last_id": 1700,
+          "cursor": "cursor_16",
+          "next_cursor": "cursor_17"
+        },
+        {
+          "number": 18,
+          "count": 100,
+          "first_id": 1701,
+          "last_id": 1800,
+          "cursor": "cursor_17",
+          "next_cursor": "cursor_18"
+        },
+        {
+          "number": 19,
+          "count": 100,
+          "first_id": 1801,
+          "last_id": 1900,
+          "cursor": "cursor_18",
+          "next_cursor": "cursor_19"
+        },
+        {
+          "number": 20,
+          "count": 100,
+          "first_id": 1901,
+          "last_id": 2000,
+          "cursor": "cursor_19",
+          "next_cursor": "cursor_20"
+        },
+        {
+          "number": 21,
+          "count": 100,
+          "first_id": 2001,
+          "last_id": 2100,
+          "cursor": "cursor_20",
+          "next_cursor": "cursor_21"
+        },
+        {
+          "number": 22,
+          "count": 100,
+          "first_id": 2101,
+          "last_id": 2200,
+          "cursor": "cursor_21",
+          "next_cursor": "cursor_22"
+        },
+        {
+          "number": 23,
+          "count": 100,
+          "first_id": 2201,
+          "last_id": 2300,
+          "cursor": "cursor_22",
+          "next_cursor": "cursor_23"
+        },
+        {
+          "number": 24,
+          "count": 100,
+          "first_id": 2301,
+          "last_id": 2400,
+          "cursor": "cursor_23",
+          "next_cursor": "cursor_24"
+        },
+        {
+          "number": 25,
+          "count": 100,
+          "first_id": 2401,
+          "last_id": 2500,
+          "cursor": "cursor_24",
+          "next_cursor": null
+        }
+      ],
+      "offline_replay_matches": true,
+      "live_replay_matches": true
+    },
+    {
+      "name": "control-250",
+      "limit": 250,
+      "exit_code": 0,
+      "outcome": "pass",
+      "stop": "terminal",
+      "complete": true,
+      "oracle_matches": true,
+      "expected_ids": 2500,
+      "observed_ids": 2500,
+      "unique_ids": 2500,
+      "findings": {},
+      "errors": [],
+      "pages": [
+        {
+          "number": 1,
+          "count": 250,
+          "first_id": 1,
+          "last_id": 250,
+          "cursor": null,
+          "next_cursor": "cursor_1"
+        },
+        {
+          "number": 2,
+          "count": 250,
+          "first_id": 251,
+          "last_id": 500,
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2"
+        },
+        {
+          "number": 3,
+          "count": 250,
+          "first_id": 501,
+          "last_id": 750,
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3"
+        },
+        {
+          "number": 4,
+          "count": 250,
+          "first_id": 751,
+          "last_id": 1000,
+          "cursor": "cursor_3",
+          "next_cursor": "cursor_4"
+        },
+        {
+          "number": 5,
+          "count": 250,
+          "first_id": 1001,
+          "last_id": 1250,
+          "cursor": "cursor_4",
+          "next_cursor": "cursor_5"
+        },
+        {
+          "number": 6,
+          "count": 250,
+          "first_id": 1251,
+          "last_id": 1500,
+          "cursor": "cursor_5",
+          "next_cursor": "cursor_6"
+        },
+        {
+          "number": 7,
+          "count": 250,
+          "first_id": 1501,
+          "last_id": 1750,
+          "cursor": "cursor_6",
+          "next_cursor": "cursor_7"
+        },
+        {
+          "number": 8,
+          "count": 250,
+          "first_id": 1751,
+          "last_id": 2000,
+          "cursor": "cursor_7",
+          "next_cursor": "cursor_8"
+        },
+        {
+          "number": 9,
+          "count": 250,
+          "first_id": 2001,
+          "last_id": 2250,
+          "cursor": "cursor_8",
+          "next_cursor": "cursor_9"
+        },
+        {
+          "number": 10,
+          "count": 250,
+          "first_id": 2251,
+          "last_id": 2500,
+          "cursor": "cursor_9",
+          "next_cursor": null
+        }
+      ],
+      "offline_replay_matches": true,
+      "live_replay_matches": true
+    },
+    {
+      "name": "control-500",
+      "limit": 500,
+      "exit_code": 0,
+      "outcome": "pass",
+      "stop": "terminal",
+      "complete": true,
+      "oracle_matches": true,
+      "expected_ids": 2500,
+      "observed_ids": 2500,
+      "unique_ids": 2500,
+      "findings": {},
+      "errors": [],
+      "pages": [
+        {
+          "number": 1,
+          "count": 500,
+          "first_id": 1,
+          "last_id": 500,
+          "cursor": null,
+          "next_cursor": "cursor_1"
+        },
+        {
+          "number": 2,
+          "count": 500,
+          "first_id": 501,
+          "last_id": 1000,
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2"
+        },
+        {
+          "number": 3,
+          "count": 500,
+          "first_id": 1001,
+          "last_id": 1500,
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3"
+        },
+        {
+          "number": 4,
+          "count": 500,
+          "first_id": 1501,
+          "last_id": 2000,
+          "cursor": "cursor_3",
+          "next_cursor": "cursor_4"
+        },
+        {
+          "number": 5,
+          "count": 500,
+          "first_id": 2001,
+          "last_id": 2500,
+          "cursor": "cursor_4",
+          "next_cursor": null
+        }
+      ],
+      "offline_replay_matches": true,
+      "live_replay_matches": true
+    },
+    {
+      "name": "small-tie-100",
+      "limit": 100,
+      "exit_code": 0,
+      "outcome": "pass",
+      "stop": "terminal",
+      "complete": true,
+      "oracle_matches": true,
+      "expected_ids": 800,
+      "observed_ids": 800,
+      "unique_ids": 800,
+      "findings": {},
+      "errors": [],
+      "pages": [
+        {
+          "number": 1,
+          "count": 100,
+          "first_id": 1,
+          "last_id": 100,
+          "cursor": null,
+          "next_cursor": "cursor_1"
+        },
+        {
+          "number": 2,
+          "count": 100,
+          "first_id": 101,
+          "last_id": 200,
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2"
+        },
+        {
+          "number": 3,
+          "count": 100,
+          "first_id": 201,
+          "last_id": 300,
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3"
+        },
+        {
+          "number": 4,
+          "count": 100,
+          "first_id": 301,
+          "last_id": 400,
+          "cursor": "cursor_3",
+          "next_cursor": "cursor_4"
+        },
+        {
+          "number": 5,
+          "count": 100,
+          "first_id": 401,
+          "last_id": 500,
+          "cursor": "cursor_4",
+          "next_cursor": "cursor_5"
+        },
+        {
+          "number": 6,
+          "count": 100,
+          "first_id": 501,
+          "last_id": 600,
+          "cursor": "cursor_5",
+          "next_cursor": "cursor_6"
+        },
+        {
+          "number": 7,
+          "count": 100,
+          "first_id": 601,
+          "last_id": 700,
+          "cursor": "cursor_6",
+          "next_cursor": "cursor_7"
+        },
+        {
+          "number": 8,
+          "count": 100,
+          "first_id": 701,
+          "last_id": 800,
+          "cursor": "cursor_7",
+          "next_cursor": null
+        }
+      ],
+      "offline_replay_matches": true,
+      "live_replay_matches": true
+    },
+    {
+      "name": "small-tie-250",
+      "limit": 250,
+      "exit_code": 0,
+      "outcome": "pass",
+      "stop": "terminal",
+      "complete": true,
+      "oracle_matches": true,
+      "expected_ids": 800,
+      "observed_ids": 800,
+      "unique_ids": 800,
+      "findings": {},
+      "errors": [],
+      "pages": [
+        {
+          "number": 1,
+          "count": 250,
+          "first_id": 1,
+          "last_id": 250,
+          "cursor": null,
+          "next_cursor": "cursor_1"
+        },
+        {
+          "number": 2,
+          "count": 250,
+          "first_id": 251,
+          "last_id": 500,
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2"
+        },
+        {
+          "number": 3,
+          "count": 250,
+          "first_id": 501,
+          "last_id": 750,
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3"
+        },
+        {
+          "number": 4,
+          "count": 50,
+          "first_id": 751,
+          "last_id": 800,
+          "cursor": "cursor_3",
+          "next_cursor": null
+        }
+      ],
+      "offline_replay_matches": true,
+      "live_replay_matches": true
+    },
+    {
+      "name": "small-tie-500",
+      "limit": 500,
+      "exit_code": 0,
+      "outcome": "pass",
+      "stop": "terminal",
+      "complete": true,
+      "oracle_matches": true,
+      "expected_ids": 800,
+      "observed_ids": 800,
+      "unique_ids": 800,
+      "findings": {},
+      "errors": [],
+      "pages": [
+        {
+          "number": 1,
+          "count": 500,
+          "first_id": 1,
+          "last_id": 500,
+          "cursor": null,
+          "next_cursor": "cursor_1"
+        },
+        {
+          "number": 2,
+          "count": 300,
+          "first_id": 501,
+          "last_id": 800,
+          "cursor": "cursor_1",
+          "next_cursor": null
+        }
+      ],
+      "offline_replay_matches": true,
+      "live_replay_matches": true
+    }
+  ],
+  "offset_cutoff": 1000
+}

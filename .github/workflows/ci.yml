@@ -25,3 +25,8 @@ jobs:
       - run: uv run mypy
       - run: uv run pytest
       - run: uv build
+      - name: Real Django/DRF regression with built client
+        run: |
+          UV_PROJECT_ENVIRONMENT=/tmp/cursorproof-drf-env uv sync --locked --group integration --no-install-project
+          uv pip install --python /tmp/cursorproof-drf-env/bin/python --no-deps dist/cursorproof-*.whl
+          /tmp/cursorproof-drf-env/bin/python -m pytest tests/test_drf_integration.py
