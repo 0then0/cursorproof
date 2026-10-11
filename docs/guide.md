@@ -149,8 +149,8 @@ Each non-null continuation must satisfy this contract before another request:
   compare scope. Query names are decoded as UTF-8 to identify `cursor_param`.
   Every other name must preserve its ordered list of decoded UTF-8 values,
   including repeats and blank values. This protects filters, tenant selection, ordering, credentials
-  in query parameters, and page size. Ordering between *different* query names
-  may change; ordering between values of the *same* name may not. Addition or
+  in query parameters, and page size. Ordering between _different_ query names
+  may change; ordering between values of the _same_ name may not. Addition or
   removal of any other parameter is an error.
 - The selected page size must remain present exactly once with the same decimal
   string. A changed, omitted, padded, or repeated limit is rejected. CursorProof
@@ -313,7 +313,7 @@ For API cardinality boundaries, opt in to fixture commands:
 
 ```yaml
 boundary_testing:
-  setup: [python, fixtures.py, set-count, "{count}"]
+  setup: [python, fixtures.py, set-count, '{count}']
   cleanup: [python, fixtures.py, reset]
   timeout: 30
 ```
