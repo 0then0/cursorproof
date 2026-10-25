@@ -1,0 +1,22 @@
+name: Feature request
+description: Describe a use case and the behavior that would help.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to check, and what prevents it today? Use synthetic examples without credentials or private data.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the expected CLI, configuration or report behavior and any compatibility concerns.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Include workarounds or explain why existing checks are insufficient.

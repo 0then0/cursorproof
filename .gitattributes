@@ -1,0 +1,21 @@
+# Normalize text files across platforms without converting binary assets.
+* text=auto eol=lf
+
+*.py text diff=python
+*.md text
+*.yml text
+*.yaml text
+*.toml text
+*.json text
+*.svg text
+uv.lock text
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.whl binary

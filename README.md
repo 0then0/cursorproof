@@ -170,3 +170,17 @@ HTTP endpoint. Follow the
 to use a separate environment and the built wheel. CI runs the core checks
 on Python 3.10 through 3.14. The Django/DRF integration tests require
 Python 3.12 or newer and run on Python 3.12 through 3.14.
+
+## Contributing and support
+
+See [Contributing](https://github.com/0then0/cursorproof/blob/main/CONTRIBUTING.md)
+for setup, checks and pull request guidance. Use
+[issues](https://github.com/0then0/cursorproof/issues) for bugs and feature requests,
+and follow the [code of conduct](https://github.com/0then0/cursorproof/blob/main/CODE_OF_CONDUCT.md).
+Report vulnerabilities privately using the
+[security policy](https://github.com/0then0/cursorproof/blob/main/SECURITY.md).
+
+Release history is in the
+[changelog](https://github.com/0then0/cursorproof/blob/main/CHANGELOG.md).
+CursorProof is licensed under
+[Apache-2.0](https://github.com/0then0/cursorproof/blob/main/LICENSE).

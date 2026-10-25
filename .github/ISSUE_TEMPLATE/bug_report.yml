@@ -1,0 +1,44 @@
+name: Bug report
+description: Report incorrect behavior with a reproducible example.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues before reporting a bug. Remove credentials, raw
+        cursors and private data from all examples and attachments. For a security
+        vulnerability, follow [SECURITY.md](https://github.com/0then0/cursorproof/blob/main/SECURITY.md)
+        instead of opening a public issue.
+  - type: input
+    id: version
+    attributes:
+      label: CursorProof version
+      description: Output of cursorproof --version, or the commit SHA for a checkout.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Python version, operating system and installation method (pip, pipx or uv).
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include the command, minimal sanitized configuration and sample API responses or a local fixture.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the exit code, finding codes and relevant sanitized output or trace if available.
+    validations:
+      required: true
