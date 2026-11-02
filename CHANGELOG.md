@@ -5,6 +5,8 @@ source; unreleased changes are not available in the latest PyPI package.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-02
+
 ### Added
 
 - An external TypeScript validation lab that runs EmDash's real
@@ -20,6 +22,7 @@ source; unreleased changes are not available in the latest PyPI package.
 
 - Focused ignore rules for Python development, local secrets and generated
   artifacts.
+- Refined project icon.
 - CI cancellation for superseded runs, full matrix feedback and workflow
   job timeouts.
 
@@ -66,7 +69,8 @@ source; unreleased changes are not available in the latest PyPI package.
 - Initial release of the pagination checker, including token traversal,
   ordering and duplicate checks, independent oracles, saved traces and replay.
 
-[Unreleased]: https://github.com/0then0/cursorproof/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/0then0/cursorproof/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/0then0/cursorproof/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/0then0/cursorproof/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/0then0/cursorproof/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/0then0/cursorproof/compare/v0.1.0...v0.1.1

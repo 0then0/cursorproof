@@ -28,7 +28,7 @@ uv build --out-dir /tmp/cursorproof-build
 UV_PROJECT_ENVIRONMENT=/tmp/cursorproof-drf-env \
   uv sync --locked --group integration --no-install-project --python 3.12
 uv pip install --python /tmp/cursorproof-drf-env/bin/python --no-deps \
-  /tmp/cursorproof-build/cursorproof-0.2.0-py3-none-any.whl
+  /tmp/cursorproof-build/cursorproof-0.2.1-py3-none-any.whl
 /tmp/cursorproof-drf-env/bin/python examples/drf_regression.py \
   --output /tmp/cursorproof-drf-evidence
 ```
