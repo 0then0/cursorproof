@@ -1,0 +1,38 @@
+# EmDash #2691 lab: score-asc. See docs/emdash-2691.md for the run procedure.
+url: http://127.0.0.1:8791/query
+parameters:
+  orderBy: score
+  direction: asc
+response:
+  items: $.items
+  next_cursor: $.cursor
+  has_more: $.hasMore
+  id: $.id
+ordering:
+  - field: data.score
+    direction: asc
+    type: number
+  - field: id
+    direction: asc
+    type: string
+limits: [10, 50, 100]
+repeats: 1
+max_pages: 60
+max_items: 3000
+max_response_bytes: 1000000
+timeout: 10
+oracle:
+  command:
+    - python3
+    - ../oracle.py
+    - --db
+    - ${EMDASH_LAB_DB}
+    - --fixture
+    - ../fixture.json
+    - --sort
+    - score
+    - --direction
+    - asc
+  format: lines
+  ordered: true
+  timeout: 20

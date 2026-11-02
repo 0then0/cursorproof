@@ -7,6 +7,10 @@ source; unreleased changes are not available in the latest PyPI package.
 
 ### Added
 
+- An external TypeScript validation lab that runs EmDash's real
+  `PluginStorageRepository` before and after the fix for issue #2691 through a
+  test-only HTTP wrapper, with an independent oracle, curated evidence and
+  offline replay.
 - Monthly Dependabot checks for Python dependencies and GitHub Actions,
   grouped minor/patch updates, a seven-day cooldown and limited open PRs.
 - EditorConfig, Git file attributes, contribution and security policies,

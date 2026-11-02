@@ -1,0 +1,2629 @@
+{
+ "lab": "emdash-2691",
+ "note": "Timestamps and ports are not recorded; outcomes are compared by signature.",
+ "cursorproof": {
+  "version": "CursorProof 0.2.0",
+  "checkout_commit": "29504c8fb5c0697209bd1c569b4bca22dbf682fd",
+  "src_unchanged_in_checkout": true
+ },
+ "runtime": {
+  "node": "v26.13.0",
+  "npm": "11.20.0",
+  "python": "3.13.18",
+  "platform": "Darwin arm64"
+ },
+ "fixture": {
+  "sha256": "38eda8967aeeec7a7a41ca51be615103590326d30935b54cb065347140815e21",
+  "documents": 150,
+  "expected_order_sha256": {
+   "default-order": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "created-asc": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "created-desc": "cd2a0f26a1d55a9dc8c3586ddd2439e13efddb7c2a68e6231a2e9235c8c559b9",
+   "score-asc": "41ae6b88c80fda38082799d63633b4d4022b4a34a7bcdb0b844e52507ab765d2",
+   "score-desc": "1c6a2693d6713e70c4ea7ae2393c07a68ff5dfa64999fecfef0302c6e7ba36ea",
+   "note-asc": "8b381915869015a66adb2f1ca53d3163559c09d089cf862f10f6ca1429889c74",
+   "note-desc": "61f03f9abde04bd129467aeaa9c4b72a64a693ea182e7f69dc8b9d971cf58675"
+  }
+ },
+ "versions": {
+  "before": "37e08b013cbd87fe57963a10c31b64091862f975",
+  "after": "01855cb9cb8fd748170e462e391925533b226fcd"
+ },
+ "executed_upstream_files": {
+  "before": 84,
+  "after": 84
+ },
+ "executed_files_differing_between_versions": [
+  "packages/core/src/database/repositories/plugin-storage.ts"
+ ],
+ "repetitions": 3,
+ "all_expectations_met": true,
+ "all_offline_replays_match": true,
+ "stable_across_repetitions": {
+  "before": {
+   "default-order": true,
+   "created-asc": true,
+   "created-desc": true,
+   "score-asc": true,
+   "score-desc": true,
+   "note-asc": true,
+   "note-desc": true
+  },
+  "after": {
+   "default-order": true,
+   "created-asc": true,
+   "created-desc": true,
+   "score-asc": true,
+   "score-desc": true,
+   "note-asc": true,
+   "note-desc": true
+  }
+ },
+ "cleanup": [
+  {
+   "version": "before",
+   "repetition": 1,
+   "process_exited": true,
+   "port_closed": true,
+   "database_removed": true
+  },
+  {
+   "version": "after",
+   "repetition": 1,
+   "process_exited": true,
+   "port_closed": true,
+   "database_removed": true
+  },
+  {
+   "version": "before",
+   "repetition": 2,
+   "process_exited": true,
+   "port_closed": true,
+   "database_removed": true
+  },
+  {
+   "version": "after",
+   "repetition": 2,
+   "process_exited": true,
+   "port_closed": true,
+   "database_removed": true
+  },
+  {
+   "version": "before",
+   "repetition": 3,
+   "process_exited": true,
+   "port_closed": true,
+   "database_removed": true
+  },
+  {
+   "version": "after",
+   "repetition": 3,
+   "process_exited": true,
+   "port_closed": true,
+   "database_removed": true
+  }
+ ],
+ "traces": {
+  "before-default-order.json": {
+   "version": "before",
+   "scenario": "default-order",
+   "exit_code": 0,
+   "sha256": "287433c1c35cb97819dcadd7b7b6d5b2d55525d9658dec8383a3b78ff05fec72",
+   "signature": {
+    "outcome": "pass",
+    "expected_items": 150,
+    "findings": {},
+    "errors": [],
+    "traversals": [
+     {
+      "limit": 10,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 15,
+      "observed": 150,
+      "unique": 150,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0,
+      "exact_order": true
+     },
+     {
+      "limit": 50,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 3,
+      "observed": 150,
+      "unique": 150,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0,
+      "exact_order": true
+     },
+     {
+      "limit": 100,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 2,
+      "observed": 150,
+      "unique": 150,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0,
+      "exact_order": true
+     }
+    ]
+   }
+  },
+  "before-created-desc.json": {
+   "version": "before",
+   "scenario": "created-desc",
+   "exit_code": 1,
+   "sha256": "8bd327cc16db7587fe2588915fa3cd4fac35bc74e177e9b1bf0aaca1b62ba8b8",
+   "signature": {
+    "outcome": "fail",
+    "expected_items": 150,
+    "findings": {
+     "CP002": 157,
+     "CP003": 3,
+     "CP004": 3,
+     "CP009": 2
+    },
+    "errors": [],
+    "traversals": [
+     {
+      "limit": 10,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 2,
+      "observed": 19,
+      "unique": 10,
+      "duplicates": 9,
+      "missing": 140,
+      "unexpected": 0,
+      "exact_order": false
+     },
+     {
+      "limit": 50,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 2,
+      "observed": 99,
+      "unique": 50,
+      "duplicates": 49,
+      "missing": 100,
+      "unexpected": 0,
+      "exact_order": false
+     },
+     {
+      "limit": 100,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 2,
+      "observed": 199,
+      "unique": 100,
+      "duplicates": 99,
+      "missing": 50,
+      "unexpected": 0,
+      "exact_order": false
+     }
+    ]
+   }
+  },
+  "before-score-desc.json": {
+   "version": "before",
+   "scenario": "score-desc",
+   "exit_code": 1,
+   "sha256": "ae141fe4e0b8eaadad5cf5b207b85fc6c60cdde250631850e68510d6f1af210b",
+   "signature": {
+    "outcome": "fail",
+    "expected_items": 150,
+    "findings": {
+     "CP002": 204,
+     "CP003": 3,
+     "CP004": 218,
+     "CP009": 2
+    },
+    "errors": [],
+    "traversals": [
+     {
+      "limit": 10,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 5,
+      "observed": 50,
+      "unique": 32,
+      "duplicates": 18,
+      "missing": 118,
+      "unexpected": 0,
+      "exact_order": false
+     },
+     {
+      "limit": 50,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 4,
+      "observed": 174,
+      "unique": 92,
+      "duplicates": 82,
+      "missing": 58,
+      "unexpected": 0,
+      "exact_order": false
+     },
+     {
+      "limit": 100,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 3,
+      "observed": 224,
+      "unique": 120,
+      "duplicates": 104,
+      "missing": 30,
+      "unexpected": 0,
+      "exact_order": false
+     }
+    ]
+   }
+  },
+  "after-created-desc.json": {
+   "version": "after",
+   "scenario": "created-desc",
+   "exit_code": 0,
+   "sha256": "4eae42d13f9e0948073cc583c70997d2c2cb247ea749e0c68eae7ef4e913e508",
+   "signature": {
+    "outcome": "pass",
+    "expected_items": 150,
+    "findings": {},
+    "errors": [],
+    "traversals": [
+     {
+      "limit": 10,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 15,
+      "observed": 150,
+      "unique": 150,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0,
+      "exact_order": true
+     },
+     {
+      "limit": 50,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 3,
+      "observed": 150,
+      "unique": 150,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0,
+      "exact_order": true
+     },
+     {
+      "limit": 100,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 2,
+      "observed": 150,
+      "unique": 150,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0,
+      "exact_order": true
+     }
+    ]
+   }
+  },
+  "after-score-desc.json": {
+   "version": "after",
+   "scenario": "score-desc",
+   "exit_code": 0,
+   "sha256": "178ccda6c723a82dd947aa96bde118774aa7ac5ba2f759d2a49b0627d72cfbea",
+   "signature": {
+    "outcome": "pass",
+    "expected_items": 150,
+    "findings": {},
+    "errors": [],
+    "traversals": [
+     {
+      "limit": 10,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 15,
+      "observed": 150,
+      "unique": 150,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0,
+      "exact_order": true
+     },
+     {
+      "limit": 50,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 3,
+      "observed": 150,
+      "unique": 150,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0,
+      "exact_order": true
+     },
+     {
+      "limit": 100,
+      "repetition": 1,
+      "stop": "terminal",
+      "pages": 2,
+      "observed": 150,
+      "unique": 150,
+      "duplicates": 0,
+      "missing": 0,
+      "unexpected": 0,
+      "exact_order": true
+     }
+    ]
+   }
+  }
+ },
+ "runs": [
+  {
+   "version": "before",
+   "repetition": 1,
+   "scenario": "default-order",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 1,
+   "scenario": "created-asc",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 1,
+   "scenario": "created-desc",
+   "exit_code": 1,
+   "oracle_sha256": "cd2a0f26a1d55a9dc8c3586ddd2439e13efddb7c2a68e6231a2e9235c8c559b9",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 157,
+    "CP003": 3,
+    "CP004": 3,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 19,
+     "unique": 10,
+     "duplicates": 9,
+     "missing": 140,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 99,
+     "unique": 50,
+     "duplicates": 49,
+     "missing": 100,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 199,
+     "unique": 100,
+     "duplicates": 99,
+     "missing": 50,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 1,
+   "scenario": "score-asc",
+   "exit_code": 1,
+   "oracle_sha256": "41ae6b88c80fda38082799d63633b4d4022b4a34a7bcdb0b844e52507ab765d2",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 179,
+    "CP003": 38,
+    "CP004": 8,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 41,
+     "unique": 20,
+     "duplicates": 21,
+     "missing": 130,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 133,
+     "unique": 84,
+     "duplicates": 49,
+     "missing": 66,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 218,
+     "unique": 109,
+     "duplicates": 109,
+     "missing": 41,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 1,
+   "scenario": "score-desc",
+   "exit_code": 1,
+   "oracle_sha256": "1c6a2693d6713e70c4ea7ae2393c07a68ff5dfa64999fecfef0302c6e7ba36ea",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 204,
+    "CP003": 3,
+    "CP004": 218,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 50,
+     "unique": 32,
+     "duplicates": 18,
+     "missing": 118,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 4,
+     "observed": 174,
+     "unique": 92,
+     "duplicates": 82,
+     "missing": 58,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 224,
+     "unique": 120,
+     "duplicates": 104,
+     "missing": 30,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 1,
+   "scenario": "note-asc",
+   "exit_code": 1,
+   "oracle_sha256": "8b381915869015a66adb2f1ca53d3163559c09d089cf862f10f6ca1429889c74",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 24,
+    "CP003": 3,
+    "CP004": 6,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 4,
+     "observed": 30,
+     "unique": 30,
+     "duplicates": 0,
+     "missing": 120,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 73,
+     "unique": 67,
+     "duplicates": 6,
+     "missing": 83,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 129,
+     "unique": 111,
+     "duplicates": 18,
+     "missing": 39,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 1,
+   "scenario": "note-desc",
+   "exit_code": 1,
+   "oracle_sha256": "61f03f9abde04bd129467aeaa9c4b72a64a693ea182e7f69dc8b9d971cf58675",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 233,
+    "CP003": 3,
+    "CP004": 365,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 42,
+     "unique": 27,
+     "duplicates": 15,
+     "missing": 123,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 206,
+     "unique": 86,
+     "duplicates": 120,
+     "missing": 64,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 206,
+     "unique": 108,
+     "duplicates": 98,
+     "missing": 42,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 1,
+   "scenario": "default-order",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 1,
+   "scenario": "created-asc",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 1,
+   "scenario": "created-desc",
+   "exit_code": 0,
+   "oracle_sha256": "cd2a0f26a1d55a9dc8c3586ddd2439e13efddb7c2a68e6231a2e9235c8c559b9",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 1,
+   "scenario": "score-asc",
+   "exit_code": 0,
+   "oracle_sha256": "41ae6b88c80fda38082799d63633b4d4022b4a34a7bcdb0b844e52507ab765d2",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 1,
+   "scenario": "score-desc",
+   "exit_code": 0,
+   "oracle_sha256": "1c6a2693d6713e70c4ea7ae2393c07a68ff5dfa64999fecfef0302c6e7ba36ea",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 1,
+   "scenario": "note-asc",
+   "exit_code": 0,
+   "oracle_sha256": "8b381915869015a66adb2f1ca53d3163559c09d089cf862f10f6ca1429889c74",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 1,
+   "scenario": "note-desc",
+   "exit_code": 0,
+   "oracle_sha256": "61f03f9abde04bd129467aeaa9c4b72a64a693ea182e7f69dc8b9d971cf58675",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 2,
+   "scenario": "default-order",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 2,
+   "scenario": "created-asc",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 2,
+   "scenario": "created-desc",
+   "exit_code": 1,
+   "oracle_sha256": "cd2a0f26a1d55a9dc8c3586ddd2439e13efddb7c2a68e6231a2e9235c8c559b9",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 157,
+    "CP003": 3,
+    "CP004": 3,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 19,
+     "unique": 10,
+     "duplicates": 9,
+     "missing": 140,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 99,
+     "unique": 50,
+     "duplicates": 49,
+     "missing": 100,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 199,
+     "unique": 100,
+     "duplicates": 99,
+     "missing": 50,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 2,
+   "scenario": "score-asc",
+   "exit_code": 1,
+   "oracle_sha256": "41ae6b88c80fda38082799d63633b4d4022b4a34a7bcdb0b844e52507ab765d2",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 179,
+    "CP003": 38,
+    "CP004": 8,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 41,
+     "unique": 20,
+     "duplicates": 21,
+     "missing": 130,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 133,
+     "unique": 84,
+     "duplicates": 49,
+     "missing": 66,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 218,
+     "unique": 109,
+     "duplicates": 109,
+     "missing": 41,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 2,
+   "scenario": "score-desc",
+   "exit_code": 1,
+   "oracle_sha256": "1c6a2693d6713e70c4ea7ae2393c07a68ff5dfa64999fecfef0302c6e7ba36ea",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 204,
+    "CP003": 3,
+    "CP004": 218,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 50,
+     "unique": 32,
+     "duplicates": 18,
+     "missing": 118,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 4,
+     "observed": 174,
+     "unique": 92,
+     "duplicates": 82,
+     "missing": 58,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 224,
+     "unique": 120,
+     "duplicates": 104,
+     "missing": 30,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 2,
+   "scenario": "note-asc",
+   "exit_code": 1,
+   "oracle_sha256": "8b381915869015a66adb2f1ca53d3163559c09d089cf862f10f6ca1429889c74",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 24,
+    "CP003": 3,
+    "CP004": 6,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 4,
+     "observed": 30,
+     "unique": 30,
+     "duplicates": 0,
+     "missing": 120,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 73,
+     "unique": 67,
+     "duplicates": 6,
+     "missing": 83,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 129,
+     "unique": 111,
+     "duplicates": 18,
+     "missing": 39,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 2,
+   "scenario": "note-desc",
+   "exit_code": 1,
+   "oracle_sha256": "61f03f9abde04bd129467aeaa9c4b72a64a693ea182e7f69dc8b9d971cf58675",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 233,
+    "CP003": 3,
+    "CP004": 365,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 42,
+     "unique": 27,
+     "duplicates": 15,
+     "missing": 123,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 206,
+     "unique": 86,
+     "duplicates": 120,
+     "missing": 64,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 206,
+     "unique": 108,
+     "duplicates": 98,
+     "missing": 42,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 2,
+   "scenario": "default-order",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 2,
+   "scenario": "created-asc",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 2,
+   "scenario": "created-desc",
+   "exit_code": 0,
+   "oracle_sha256": "cd2a0f26a1d55a9dc8c3586ddd2439e13efddb7c2a68e6231a2e9235c8c559b9",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 2,
+   "scenario": "score-asc",
+   "exit_code": 0,
+   "oracle_sha256": "41ae6b88c80fda38082799d63633b4d4022b4a34a7bcdb0b844e52507ab765d2",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 2,
+   "scenario": "score-desc",
+   "exit_code": 0,
+   "oracle_sha256": "1c6a2693d6713e70c4ea7ae2393c07a68ff5dfa64999fecfef0302c6e7ba36ea",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 2,
+   "scenario": "note-asc",
+   "exit_code": 0,
+   "oracle_sha256": "8b381915869015a66adb2f1ca53d3163559c09d089cf862f10f6ca1429889c74",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 2,
+   "scenario": "note-desc",
+   "exit_code": 0,
+   "oracle_sha256": "61f03f9abde04bd129467aeaa9c4b72a64a693ea182e7f69dc8b9d971cf58675",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 3,
+   "scenario": "default-order",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 3,
+   "scenario": "created-asc",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 3,
+   "scenario": "created-desc",
+   "exit_code": 1,
+   "oracle_sha256": "cd2a0f26a1d55a9dc8c3586ddd2439e13efddb7c2a68e6231a2e9235c8c559b9",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 157,
+    "CP003": 3,
+    "CP004": 3,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 19,
+     "unique": 10,
+     "duplicates": 9,
+     "missing": 140,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 99,
+     "unique": 50,
+     "duplicates": 49,
+     "missing": 100,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 199,
+     "unique": 100,
+     "duplicates": 99,
+     "missing": 50,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 3,
+   "scenario": "score-asc",
+   "exit_code": 1,
+   "oracle_sha256": "41ae6b88c80fda38082799d63633b4d4022b4a34a7bcdb0b844e52507ab765d2",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 179,
+    "CP003": 38,
+    "CP004": 8,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 41,
+     "unique": 20,
+     "duplicates": 21,
+     "missing": 130,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 133,
+     "unique": 84,
+     "duplicates": 49,
+     "missing": 66,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 218,
+     "unique": 109,
+     "duplicates": 109,
+     "missing": 41,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 3,
+   "scenario": "score-desc",
+   "exit_code": 1,
+   "oracle_sha256": "1c6a2693d6713e70c4ea7ae2393c07a68ff5dfa64999fecfef0302c6e7ba36ea",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 204,
+    "CP003": 3,
+    "CP004": 218,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 50,
+     "unique": 32,
+     "duplicates": 18,
+     "missing": 118,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 4,
+     "observed": 174,
+     "unique": 92,
+     "duplicates": 82,
+     "missing": 58,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 224,
+     "unique": 120,
+     "duplicates": 104,
+     "missing": 30,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 3,
+   "scenario": "note-asc",
+   "exit_code": 1,
+   "oracle_sha256": "8b381915869015a66adb2f1ca53d3163559c09d089cf862f10f6ca1429889c74",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 24,
+    "CP003": 3,
+    "CP004": 6,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 4,
+     "observed": 30,
+     "unique": 30,
+     "duplicates": 0,
+     "missing": 120,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 73,
+     "unique": 67,
+     "duplicates": 6,
+     "missing": 83,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 129,
+     "unique": 111,
+     "duplicates": 18,
+     "missing": 39,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "before",
+   "repetition": 3,
+   "scenario": "note-desc",
+   "exit_code": 1,
+   "oracle_sha256": "61f03f9abde04bd129467aeaa9c4b72a64a693ea182e7f69dc8b9d971cf58675",
+   "offline_replay_matches": true,
+   "expectation": "violation",
+   "expectation_met": true,
+   "outcome": "fail",
+   "expected_items": 150,
+   "findings": {
+    "CP002": 233,
+    "CP003": 3,
+    "CP004": 365,
+    "CP009": 2
+   },
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 42,
+     "unique": 27,
+     "duplicates": 15,
+     "missing": 123,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 5,
+     "observed": 206,
+     "unique": 86,
+     "duplicates": 120,
+     "missing": 64,
+     "unexpected": 0,
+     "exact_order": false
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 206,
+     "unique": 108,
+     "duplicates": 98,
+     "missing": 42,
+     "unexpected": 0,
+     "exact_order": false
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 3,
+   "scenario": "default-order",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 3,
+   "scenario": "created-asc",
+   "exit_code": 0,
+   "oracle_sha256": "c9a2e71b437f56fb74c754753fd82085aab79c92574c505c5a0417fcd1e4b602",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 3,
+   "scenario": "created-desc",
+   "exit_code": 0,
+   "oracle_sha256": "cd2a0f26a1d55a9dc8c3586ddd2439e13efddb7c2a68e6231a2e9235c8c559b9",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 3,
+   "scenario": "score-asc",
+   "exit_code": 0,
+   "oracle_sha256": "41ae6b88c80fda38082799d63633b4d4022b4a34a7bcdb0b844e52507ab765d2",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 3,
+   "scenario": "score-desc",
+   "exit_code": 0,
+   "oracle_sha256": "1c6a2693d6713e70c4ea7ae2393c07a68ff5dfa64999fecfef0302c6e7ba36ea",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 3,
+   "scenario": "note-asc",
+   "exit_code": 0,
+   "oracle_sha256": "8b381915869015a66adb2f1ca53d3163559c09d089cf862f10f6ca1429889c74",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  },
+  {
+   "version": "after",
+   "repetition": 3,
+   "scenario": "note-desc",
+   "exit_code": 0,
+   "oracle_sha256": "61f03f9abde04bd129467aeaa9c4b72a64a693ea182e7f69dc8b9d971cf58675",
+   "offline_replay_matches": true,
+   "expectation": "pass",
+   "expectation_met": true,
+   "outcome": "pass",
+   "expected_items": 150,
+   "findings": {},
+   "errors": [],
+   "traversals": [
+    {
+     "limit": 10,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 15,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 50,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 3,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    },
+    {
+     "limit": 100,
+     "repetition": 1,
+     "stop": "terminal",
+     "pages": 2,
+     "observed": 150,
+     "unique": 150,
+     "duplicates": 0,
+     "missing": 0,
+     "unexpected": 0,
+     "exact_order": true
+    }
+   ]
+  }
+ ]
+}

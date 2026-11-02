@@ -1,0 +1,35 @@
+{
+  "purpose": "Historical external validation of CursorProof on EmDash issue 2691. Not a statement about current EmDash.",
+  "upstream": {
+    "repository": "https://github.com/emdash-cms/emdash",
+    "license": "MIT",
+    "issue": "https://github.com/emdash-cms/emdash/issues/2691",
+    "pull_request": "https://github.com/emdash-cms/emdash/pull/2699",
+    "package": "emdash 0.36.0 (packages/core)",
+    "integration_level": "Upstream TypeScript source is imported unmodified from a disposable snapshot: db/node-sqlite-compat.ts, database/migrations/runner.ts and database/repositories/plugin-storage.ts. PluginStorageRepository is not a public package export, so the repository is reached through a test-only HTTP wrapper, not through EmDash's REST API."
+  },
+  "versions": {
+    "before": {
+      "commit": "37e08b013cbd87fe57963a10c31b64091862f975",
+      "note": "First parent of the squash commit; the last main commit before the fix landed."
+    },
+    "after": {
+      "commit": "01855cb9cb8fd748170e462e391925533b226fcd",
+      "note": "Squash merge of PR 2699: fix(plugin-storage): seek on the sort key when paginating with orderBy."
+    }
+  },
+  "snapshots": {
+    "37e08b013cbd87fe57963a10c31b64091862f975": {
+      "label": "before",
+      "archive_sha256_observed": "f2ef69b29f54297e25842c7316977da2e09e7392945a0a84dbed7d41b92a8457",
+      "source_files": 733,
+      "source_tree_sha256": "a7d1ec1f232cf402f8343fb080e7e3a49f9f47d83f26bf4772934fb65a3afcf8"
+    },
+    "01855cb9cb8fd748170e462e391925533b226fcd": {
+      "label": "after",
+      "archive_sha256_observed": "1cb8fdc91cc86ca2a2bdd6f737ef930720a65a6f0bce91ded1a6a86331236045",
+      "source_files": 733,
+      "source_tree_sha256": "a2e3d1165dd6e7c5c6d5a4fedab1e772f8998816607bffe41c008336e973044a"
+    }
+  }
+}

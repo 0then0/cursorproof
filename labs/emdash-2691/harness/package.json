@@ -1,0 +1,15 @@
+{
+  "name": "cursorproof-emdash-2691-harness",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Thin HTTP wrapper around the upstream EmDash PluginStorageRepository for the CursorProof lab.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "kysely": "0.29.2",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22.16"
+  }
+}

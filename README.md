@@ -137,6 +137,15 @@ shows how a large group of equal sort values can repeat a page. It includes a
 local HTTP/SQLite setup, a unique-ordering control and traces you can replay
 without Django.
 
+## EmDash plugin storage example
+
+The [EmDash example](https://github.com/0then0/cursorproof/blob/main/docs/emdash-2691.md)
+is a historical check against a TypeScript target. It runs EmDash's real
+`PluginStorageRepository` before and after the fix for
+[issue #2691](https://github.com/emdash-cms/emdash/issues/2691) behind a thin
+test wrapper, compares the stream with an independent database oracle and saves
+traces you can replay without Node.js. It is not a claim about current EmDash.
+
 ## Additional checks
 
 CursorProof also supports snapshot consistency, live keyset checks, mutation

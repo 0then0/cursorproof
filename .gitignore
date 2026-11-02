@@ -30,6 +30,9 @@ dist/
 coverage.xml
 htmlcov/
 
+# Node.js dependencies installed for external validation labs
+node_modules/
+
 # Credentials and machine-local configuration
 .env
 .env.*

@@ -1,0 +1,3904 @@
+{
+  "schema_version": 2,
+  "tool_version": "0.2.0",
+  "replay_fingerprint": "f6f4bb4b240fb679ae61396b86ac5f8db601cc6d289456b6289d5861c10e3579",
+  "expected_unique_items": null,
+  "consistency": "static",
+  "ordering_fields": [
+    "data.score",
+    "id"
+  ],
+  "traversals": [
+    {
+      "limit": 10,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=10",
+          "cursor": null,
+          "next_cursor": "cursor_1",
+          "has_more": true,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-027",
+              "sort_key": [
+                0,
+                29
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-077",
+              "sort_key": [
+                0,
+                25
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-004",
+              "sort_key": [
+                1,
+                31
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-054",
+              "sort_key": [
+                1,
+                27
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-104",
+              "sort_key": [
+                1,
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-031",
+              "sort_key": [
+                2,
+                28
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-081",
+              "sort_key": [
+                2,
+                24
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-008",
+              "sort_key": [
+                3,
+                30
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=10&cursor=cursor_1",
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2",
+          "has_more": true,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-027",
+              "sort_key": [
+                0,
+                29
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-077",
+              "sort_key": [
+                0,
+                25
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-054",
+              "sort_key": [
+                1,
+                27
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-104",
+              "sort_key": [
+                1,
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-031",
+              "sort_key": [
+                2,
+                28
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-081",
+              "sort_key": [
+                2,
+                24
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-058",
+              "sort_key": [
+                3,
+                26
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-108",
+              "sort_key": [
+                3,
+                22
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=10&cursor=cursor_2",
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3",
+          "has_more": true,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-135",
+              "sort_key": [
+                4,
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-112",
+              "sort_key": [
+                5,
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-139",
+              "sort_key": [
+                6,
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-116",
+              "sort_key": [
+                7,
+                20
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-143",
+              "sort_key": [
+                8,
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-120",
+              "sort_key": [
+                9,
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-147",
+              "sort_key": [
+                10,
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-124",
+              "sort_key": [
+                11,
+                18
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=10&cursor=cursor_3",
+          "cursor": "cursor_3",
+          "next_cursor": "cursor_4",
+          "has_more": true,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-135",
+              "sort_key": [
+                4,
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-139",
+              "sort_key": [
+                6,
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-143",
+              "sort_key": [
+                8,
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-147",
+              "sort_key": [
+                10,
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-128",
+              "sort_key": [
+                12,
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-132",
+              "sort_key": [
+                13,
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-136",
+              "sort_key": [
+                14,
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-140",
+              "sort_key": [
+                15,
+                10
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 5,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=10&cursor=cursor_4",
+          "cursor": "cursor_4",
+          "next_cursor": null,
+          "has_more": false,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-143",
+              "sort_key": [
+                8,
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-147",
+              "sort_key": [
+                10,
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-144",
+              "sort_key": [
+                16,
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-148",
+              "sort_key": [
+                17,
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-141",
+              "sort_key": [
+                18,
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-145",
+              "sort_key": [
+                19,
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-149",
+              "sort_key": [
+                20,
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-142",
+              "sort_key": [
+                21,
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-146",
+              "sort_key": [
+                22,
+                4
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-150",
+              "sort_key": [
+                23,
+                0
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    },
+    {
+      "limit": 50,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=50",
+          "cursor": null,
+          "next_cursor": "cursor_5",
+          "has_more": true,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-027",
+              "sort_key": [
+                0,
+                82
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-077",
+              "sort_key": [
+                0,
+                61
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-004",
+              "sort_key": [
+                1,
+                90
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-054",
+              "sort_key": [
+                1,
+                73
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-104",
+              "sort_key": [
+                1,
+                41
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-031",
+              "sort_key": [
+                2,
+                80
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-081",
+              "sort_key": [
+                2,
+                58
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-008",
+              "sort_key": [
+                3,
+                88
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-058",
+              "sort_key": [
+                3,
+                71
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-108",
+              "sort_key": [
+                3,
+                38
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-035",
+              "sort_key": [
+                4,
+                78
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-085",
+              "sort_key": [
+                4,
+                55
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-135",
+              "sort_key": [
+                4,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-012",
+              "sort_key": [
+                5,
+                86
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-062",
+              "sort_key": [
+                5,
+                69
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-112",
+              "sort_key": [
+                5,
+                35
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-039",
+              "sort_key": [
+                6,
+                77
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-089",
+              "sort_key": [
+                6,
+                52
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-139",
+              "sort_key": [
+                6,
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-016",
+              "sort_key": [
+                7,
+                85
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-066",
+              "sort_key": [
+                7,
+                67
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-116",
+              "sort_key": [
+                7,
+                32
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-043",
+              "sort_key": [
+                8,
+                76
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-093",
+              "sort_key": [
+                8,
+                49
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-143",
+              "sort_key": [
+                8,
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-020",
+              "sort_key": [
+                9,
+                84
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-070",
+              "sort_key": [
+                9,
+                65
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-120",
+              "sort_key": [
+                9,
+                29
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-047",
+              "sort_key": [
+                10,
+                75
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-097",
+              "sort_key": [
+                10,
+                46
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-147",
+              "sort_key": [
+                10,
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-024",
+              "sort_key": [
+                11,
+                83
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-074",
+              "sort_key": [
+                11,
+                63
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-124",
+              "sort_key": [
+                11,
+                26
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-001",
+              "sort_key": [
+                12,
+                91
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-051",
+              "sort_key": [
+                12,
+                74
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-101",
+              "sort_key": [
+                12,
+                43
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-028",
+              "sort_key": [
+                13,
+                81
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-078",
+              "sort_key": [
+                13,
+                60
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-128",
+              "sort_key": [
+                13,
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-005",
+              "sort_key": [
+                14,
+                89
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-055",
+              "sort_key": [
+                14,
+                72
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-105",
+              "sort_key": [
+                14,
+                40
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-032",
+              "sort_key": [
+                15,
+                79
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-082",
+              "sort_key": [
+                15,
+                57
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-132",
+              "sort_key": [
+                15,
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-009",
+              "sort_key": [
+                16,
+                87
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-059",
+              "sort_key": [
+                16,
+                70
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=50&cursor=cursor_5",
+          "cursor": "cursor_5",
+          "next_cursor": "cursor_6",
+          "has_more": true,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-077",
+              "sort_key": [
+                0,
+                61
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-104",
+              "sort_key": [
+                1,
+                41
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-081",
+              "sort_key": [
+                2,
+                58
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-108",
+              "sort_key": [
+                3,
+                38
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-085",
+              "sort_key": [
+                4,
+                55
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-135",
+              "sort_key": [
+                4,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-062",
+              "sort_key": [
+                5,
+                69
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-112",
+              "sort_key": [
+                5,
+                35
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-089",
+              "sort_key": [
+                6,
+                52
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-139",
+              "sort_key": [
+                6,
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-066",
+              "sort_key": [
+                7,
+                67
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-116",
+              "sort_key": [
+                7,
+                32
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-093",
+              "sort_key": [
+                8,
+                49
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-143",
+              "sort_key": [
+                8,
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-070",
+              "sort_key": [
+                9,
+                65
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-120",
+              "sort_key": [
+                9,
+                29
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-097",
+              "sort_key": [
+                10,
+                46
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-147",
+              "sort_key": [
+                10,
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-074",
+              "sort_key": [
+                11,
+                63
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-124",
+              "sort_key": [
+                11,
+                26
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-101",
+              "sort_key": [
+                12,
+                43
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-078",
+              "sort_key": [
+                13,
+                60
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-128",
+              "sort_key": [
+                13,
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-105",
+              "sort_key": [
+                14,
+                40
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-082",
+              "sort_key": [
+                15,
+                57
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-132",
+              "sort_key": [
+                15,
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-109",
+              "sort_key": [
+                16,
+                37
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-086",
+              "sort_key": [
+                17,
+                54
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-136",
+              "sort_key": [
+                17,
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-063",
+              "sort_key": [
+                18,
+                68
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-113",
+              "sort_key": [
+                18,
+                34
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-090",
+              "sort_key": [
+                19,
+                51
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-140",
+              "sort_key": [
+                19,
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-067",
+              "sort_key": [
+                20,
+                66
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-117",
+              "sort_key": [
+                20,
+                31
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-094",
+              "sort_key": [
+                21,
+                48
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-144",
+              "sort_key": [
+                21,
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-071",
+              "sort_key": [
+                22,
+                64
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-121",
+              "sort_key": [
+                22,
+                28
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-098",
+              "sort_key": [
+                23,
+                45
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-148",
+              "sort_key": [
+                23,
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-075",
+              "sort_key": [
+                24,
+                62
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-125",
+              "sort_key": [
+                24,
+                25
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-102",
+              "sort_key": [
+                25,
+                42
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-079",
+              "sort_key": [
+                26,
+                59
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-129",
+              "sort_key": [
+                26,
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-106",
+              "sort_key": [
+                27,
+                39
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-083",
+              "sort_key": [
+                28,
+                56
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=50&cursor=cursor_6",
+          "cursor": "cursor_6",
+          "next_cursor": "cursor_7",
+          "has_more": true,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-104",
+              "sort_key": [
+                1,
+                41
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-108",
+              "sort_key": [
+                3,
+                38
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-085",
+              "sort_key": [
+                4,
+                55
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-135",
+              "sort_key": [
+                4,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-112",
+              "sort_key": [
+                5,
+                35
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-089",
+              "sort_key": [
+                6,
+                52
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-139",
+              "sort_key": [
+                6,
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-116",
+              "sort_key": [
+                7,
+                32
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-093",
+              "sort_key": [
+                8,
+                49
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-143",
+              "sort_key": [
+                8,
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-120",
+              "sort_key": [
+                9,
+                29
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-097",
+              "sort_key": [
+                10,
+                46
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-147",
+              "sort_key": [
+                10,
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-124",
+              "sort_key": [
+                11,
+                26
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-101",
+              "sort_key": [
+                12,
+                43
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-128",
+              "sort_key": [
+                13,
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-105",
+              "sort_key": [
+                14,
+                40
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-132",
+              "sort_key": [
+                15,
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-109",
+              "sort_key": [
+                16,
+                37
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-086",
+              "sort_key": [
+                17,
+                54
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-136",
+              "sort_key": [
+                17,
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-113",
+              "sort_key": [
+                18,
+                34
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-090",
+              "sort_key": [
+                19,
+                51
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-140",
+              "sort_key": [
+                19,
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-117",
+              "sort_key": [
+                20,
+                31
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-094",
+              "sort_key": [
+                21,
+                48
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-144",
+              "sort_key": [
+                21,
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-121",
+              "sort_key": [
+                22,
+                28
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-098",
+              "sort_key": [
+                23,
+                45
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-148",
+              "sort_key": [
+                23,
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-125",
+              "sort_key": [
+                24,
+                25
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-102",
+              "sort_key": [
+                25,
+                42
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-129",
+              "sort_key": [
+                26,
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-106",
+              "sort_key": [
+                27,
+                39
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-133",
+              "sort_key": [
+                28,
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-110",
+              "sort_key": [
+                29,
+                36
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-087",
+              "sort_key": [
+                30,
+                53
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-137",
+              "sort_key": [
+                30,
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-114",
+              "sort_key": [
+                31,
+                33
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-091",
+              "sort_key": [
+                32,
+                50
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-141",
+              "sort_key": [
+                32,
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-118",
+              "sort_key": [
+                33,
+                30
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-095",
+              "sort_key": [
+                34,
+                47
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-145",
+              "sort_key": [
+                34,
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-122",
+              "sort_key": [
+                35,
+                27
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-099",
+              "sort_key": [
+                36,
+                44
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-149",
+              "sort_key": [
+                36,
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-126",
+              "sort_key": [
+                37,
+                24
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=50&cursor=cursor_7",
+          "cursor": "cursor_7",
+          "next_cursor": null,
+          "has_more": false,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-135",
+              "sort_key": [
+                4,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-139",
+              "sort_key": [
+                6,
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-143",
+              "sort_key": [
+                8,
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-147",
+              "sort_key": [
+                10,
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-128",
+              "sort_key": [
+                13,
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-132",
+              "sort_key": [
+                15,
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-136",
+              "sort_key": [
+                17,
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-140",
+              "sort_key": [
+                19,
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-144",
+              "sort_key": [
+                21,
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-148",
+              "sort_key": [
+                23,
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-129",
+              "sort_key": [
+                26,
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-133",
+              "sort_key": [
+                28,
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-137",
+              "sort_key": [
+                30,
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-141",
+              "sort_key": [
+                32,
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-145",
+              "sort_key": [
+                34,
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-149",
+              "sort_key": [
+                36,
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-130",
+              "sort_key": [
+                38,
+                20
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-134",
+              "sort_key": [
+                39,
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-138",
+              "sort_key": [
+                40,
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-142",
+              "sort_key": [
+                41,
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-146",
+              "sort_key": [
+                42,
+                4
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-150",
+              "sort_key": [
+                43,
+                0
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    },
+    {
+      "limit": 100,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=100",
+          "cursor": null,
+          "next_cursor": "cursor_8",
+          "has_more": true,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-027",
+              "sort_key": [
+                0,
+                99
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-077",
+              "sort_key": [
+                0,
+                61
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-004",
+              "sort_key": [
+                1,
+                117
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-054",
+              "sort_key": [
+                1,
+                79
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-104",
+              "sort_key": [
+                1,
+                41
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-031",
+              "sort_key": [
+                2,
+                96
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-081",
+              "sort_key": [
+                2,
+                58
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-008",
+              "sort_key": [
+                3,
+                114
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-058",
+              "sort_key": [
+                3,
+                76
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-108",
+              "sort_key": [
+                3,
+                38
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-035",
+              "sort_key": [
+                4,
+                93
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-085",
+              "sort_key": [
+                4,
+                55
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-135",
+              "sort_key": [
+                4,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-012",
+              "sort_key": [
+                5,
+                111
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-062",
+              "sort_key": [
+                5,
+                73
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-112",
+              "sort_key": [
+                5,
+                35
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-039",
+              "sort_key": [
+                6,
+                90
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-089",
+              "sort_key": [
+                6,
+                52
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-139",
+              "sort_key": [
+                6,
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-016",
+              "sort_key": [
+                7,
+                108
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-066",
+              "sort_key": [
+                7,
+                70
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-116",
+              "sort_key": [
+                7,
+                32
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-043",
+              "sort_key": [
+                8,
+                87
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-093",
+              "sort_key": [
+                8,
+                49
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-143",
+              "sort_key": [
+                8,
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-020",
+              "sort_key": [
+                9,
+                105
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-070",
+              "sort_key": [
+                9,
+                67
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-120",
+              "sort_key": [
+                9,
+                29
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-047",
+              "sort_key": [
+                10,
+                84
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-097",
+              "sort_key": [
+                10,
+                46
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-147",
+              "sort_key": [
+                10,
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-024",
+              "sort_key": [
+                11,
+                102
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-074",
+              "sort_key": [
+                11,
+                64
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-124",
+              "sort_key": [
+                11,
+                26
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-001",
+              "sort_key": [
+                12,
+                119
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-051",
+              "sort_key": [
+                12,
+                81
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-101",
+              "sort_key": [
+                12,
+                43
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-028",
+              "sort_key": [
+                13,
+                98
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-078",
+              "sort_key": [
+                13,
+                60
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-128",
+              "sort_key": [
+                13,
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-005",
+              "sort_key": [
+                14,
+                116
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-055",
+              "sort_key": [
+                14,
+                78
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-105",
+              "sort_key": [
+                14,
+                40
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-032",
+              "sort_key": [
+                15,
+                95
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-082",
+              "sort_key": [
+                15,
+                57
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-132",
+              "sort_key": [
+                15,
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-009",
+              "sort_key": [
+                16,
+                113
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-059",
+              "sort_key": [
+                16,
+                75
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-109",
+              "sort_key": [
+                16,
+                37
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-036",
+              "sort_key": [
+                17,
+                92
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-086",
+              "sort_key": [
+                17,
+                54
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-136",
+              "sort_key": [
+                17,
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-013",
+              "sort_key": [
+                18,
+                110
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-063",
+              "sort_key": [
+                18,
+                72
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-113",
+              "sort_key": [
+                18,
+                34
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-040",
+              "sort_key": [
+                19,
+                89
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-090",
+              "sort_key": [
+                19,
+                51
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-140",
+              "sort_key": [
+                19,
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-017",
+              "sort_key": [
+                20,
+                107
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-067",
+              "sort_key": [
+                20,
+                69
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-117",
+              "sort_key": [
+                20,
+                31
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-044",
+              "sort_key": [
+                21,
+                86
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-094",
+              "sort_key": [
+                21,
+                48
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-144",
+              "sort_key": [
+                21,
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-021",
+              "sort_key": [
+                22,
+                104
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-071",
+              "sort_key": [
+                22,
+                66
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-121",
+              "sort_key": [
+                22,
+                28
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-048",
+              "sort_key": [
+                23,
+                83
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-098",
+              "sort_key": [
+                23,
+                45
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-148",
+              "sort_key": [
+                23,
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-025",
+              "sort_key": [
+                24,
+                101
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-075",
+              "sort_key": [
+                24,
+                63
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-125",
+              "sort_key": [
+                24,
+                25
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-002",
+              "sort_key": [
+                25,
+                118
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-052",
+              "sort_key": [
+                25,
+                80
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-102",
+              "sort_key": [
+                25,
+                42
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-029",
+              "sort_key": [
+                26,
+                97
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-079",
+              "sort_key": [
+                26,
+                59
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-129",
+              "sort_key": [
+                26,
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-006",
+              "sort_key": [
+                27,
+                115
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-056",
+              "sort_key": [
+                27,
+                77
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-106",
+              "sort_key": [
+                27,
+                39
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-033",
+              "sort_key": [
+                28,
+                94
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-083",
+              "sort_key": [
+                28,
+                56
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-133",
+              "sort_key": [
+                28,
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-010",
+              "sort_key": [
+                29,
+                112
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-060",
+              "sort_key": [
+                29,
+                74
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-110",
+              "sort_key": [
+                29,
+                36
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-037",
+              "sort_key": [
+                30,
+                91
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-087",
+              "sort_key": [
+                30,
+                53
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-137",
+              "sort_key": [
+                30,
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-014",
+              "sort_key": [
+                31,
+                109
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-064",
+              "sort_key": [
+                31,
+                71
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-114",
+              "sort_key": [
+                31,
+                33
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-041",
+              "sort_key": [
+                32,
+                88
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-091",
+              "sort_key": [
+                32,
+                50
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-141",
+              "sort_key": [
+                32,
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-018",
+              "sort_key": [
+                33,
+                106
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=100&cursor=cursor_8",
+          "cursor": "cursor_8",
+          "next_cursor": "cursor_7",
+          "has_more": true,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-027",
+              "sort_key": [
+                0,
+                99
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-077",
+              "sort_key": [
+                0,
+                61
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-054",
+              "sort_key": [
+                1,
+                79
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-104",
+              "sort_key": [
+                1,
+                41
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-031",
+              "sort_key": [
+                2,
+                96
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-081",
+              "sort_key": [
+                2,
+                58
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-058",
+              "sort_key": [
+                3,
+                76
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-108",
+              "sort_key": [
+                3,
+                38
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-035",
+              "sort_key": [
+                4,
+                93
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-085",
+              "sort_key": [
+                4,
+                55
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-135",
+              "sort_key": [
+                4,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-062",
+              "sort_key": [
+                5,
+                73
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-112",
+              "sort_key": [
+                5,
+                35
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-039",
+              "sort_key": [
+                6,
+                90
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-089",
+              "sort_key": [
+                6,
+                52
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-139",
+              "sort_key": [
+                6,
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-066",
+              "sort_key": [
+                7,
+                70
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-116",
+              "sort_key": [
+                7,
+                32
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-043",
+              "sort_key": [
+                8,
+                87
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-093",
+              "sort_key": [
+                8,
+                49
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-143",
+              "sort_key": [
+                8,
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-020",
+              "sort_key": [
+                9,
+                105
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-070",
+              "sort_key": [
+                9,
+                67
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-120",
+              "sort_key": [
+                9,
+                29
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-047",
+              "sort_key": [
+                10,
+                84
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-097",
+              "sort_key": [
+                10,
+                46
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-147",
+              "sort_key": [
+                10,
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-024",
+              "sort_key": [
+                11,
+                102
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-074",
+              "sort_key": [
+                11,
+                64
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-124",
+              "sort_key": [
+                11,
+                26
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-051",
+              "sort_key": [
+                12,
+                81
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-101",
+              "sort_key": [
+                12,
+                43
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-028",
+              "sort_key": [
+                13,
+                98
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-078",
+              "sort_key": [
+                13,
+                60
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-128",
+              "sort_key": [
+                13,
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-055",
+              "sort_key": [
+                14,
+                78
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-105",
+              "sort_key": [
+                14,
+                40
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-032",
+              "sort_key": [
+                15,
+                95
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-082",
+              "sort_key": [
+                15,
+                57
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-132",
+              "sort_key": [
+                15,
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-059",
+              "sort_key": [
+                16,
+                75
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-109",
+              "sort_key": [
+                16,
+                37
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-036",
+              "sort_key": [
+                17,
+                92
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-086",
+              "sort_key": [
+                17,
+                54
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-136",
+              "sort_key": [
+                17,
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-063",
+              "sort_key": [
+                18,
+                72
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-113",
+              "sort_key": [
+                18,
+                34
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-040",
+              "sort_key": [
+                19,
+                89
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-090",
+              "sort_key": [
+                19,
+                51
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-140",
+              "sort_key": [
+                19,
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-067",
+              "sort_key": [
+                20,
+                69
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-117",
+              "sort_key": [
+                20,
+                31
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-044",
+              "sort_key": [
+                21,
+                86
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-094",
+              "sort_key": [
+                21,
+                48
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-144",
+              "sort_key": [
+                21,
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-021",
+              "sort_key": [
+                22,
+                104
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-071",
+              "sort_key": [
+                22,
+                66
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-121",
+              "sort_key": [
+                22,
+                28
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-048",
+              "sort_key": [
+                23,
+                83
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-098",
+              "sort_key": [
+                23,
+                45
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-148",
+              "sort_key": [
+                23,
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-025",
+              "sort_key": [
+                24,
+                101
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-075",
+              "sort_key": [
+                24,
+                63
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-125",
+              "sort_key": [
+                24,
+                25
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-052",
+              "sort_key": [
+                25,
+                80
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-102",
+              "sort_key": [
+                25,
+                42
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-029",
+              "sort_key": [
+                26,
+                97
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-079",
+              "sort_key": [
+                26,
+                59
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-129",
+              "sort_key": [
+                26,
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-056",
+              "sort_key": [
+                27,
+                77
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-106",
+              "sort_key": [
+                27,
+                39
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-033",
+              "sort_key": [
+                28,
+                94
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-083",
+              "sort_key": [
+                28,
+                56
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-133",
+              "sort_key": [
+                28,
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-060",
+              "sort_key": [
+                29,
+                74
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-110",
+              "sort_key": [
+                29,
+                36
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-037",
+              "sort_key": [
+                30,
+                91
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-087",
+              "sort_key": [
+                30,
+                53
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-137",
+              "sort_key": [
+                30,
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-064",
+              "sort_key": [
+                31,
+                71
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-114",
+              "sort_key": [
+                31,
+                33
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-041",
+              "sort_key": [
+                32,
+                88
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-091",
+              "sort_key": [
+                32,
+                50
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-141",
+              "sort_key": [
+                32,
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-068",
+              "sort_key": [
+                33,
+                68
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-118",
+              "sort_key": [
+                33,
+                30
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-045",
+              "sort_key": [
+                34,
+                85
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-095",
+              "sort_key": [
+                34,
+                47
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-145",
+              "sort_key": [
+                34,
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-022",
+              "sort_key": [
+                35,
+                103
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-072",
+              "sort_key": [
+                35,
+                65
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-122",
+              "sort_key": [
+                35,
+                27
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-049",
+              "sort_key": [
+                36,
+                82
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-099",
+              "sort_key": [
+                36,
+                44
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-149",
+              "sort_key": [
+                36,
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-026",
+              "sort_key": [
+                37,
+                100
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-076",
+              "sort_key": [
+                37,
+                62
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-126",
+              "sort_key": [
+                37,
+                24
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "request": "http://127.0.0.1:62672/query?orderBy=score&direction=desc&limit=100&cursor=cursor_7",
+          "cursor": "cursor_7",
+          "next_cursor": null,
+          "has_more": false,
+          "status": 200,
+          "items": [
+            {
+              "id": "sub-127",
+              "sort_key": [
+                0,
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-131",
+              "sort_key": [
+                2,
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-135",
+              "sort_key": [
+                4,
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-139",
+              "sort_key": [
+                6,
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-143",
+              "sort_key": [
+                8,
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-147",
+              "sort_key": [
+                10,
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-128",
+              "sort_key": [
+                13,
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-132",
+              "sort_key": [
+                15,
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-136",
+              "sort_key": [
+                17,
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-140",
+              "sort_key": [
+                19,
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-144",
+              "sort_key": [
+                21,
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-148",
+              "sort_key": [
+                23,
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-129",
+              "sort_key": [
+                26,
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-133",
+              "sort_key": [
+                28,
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-137",
+              "sort_key": [
+                30,
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-141",
+              "sort_key": [
+                32,
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-145",
+              "sort_key": [
+                34,
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-149",
+              "sort_key": [
+                36,
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-130",
+              "sort_key": [
+                38,
+                20
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-134",
+              "sort_key": [
+                39,
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-138",
+              "sort_key": [
+                40,
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-142",
+              "sort_key": [
+                41,
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-146",
+              "sort_key": [
+                42,
+                4
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "sub-150",
+              "sort_key": [
+                43,
+                0
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    }
+  ],
+  "oracle": [
+    "sub-127",
+    "sub-077",
+    "sub-027",
+    "sub-104",
+    "sub-054",
+    "sub-004",
+    "sub-131",
+    "sub-081",
+    "sub-031",
+    "sub-108",
+    "sub-058",
+    "sub-008",
+    "sub-135",
+    "sub-085",
+    "sub-035",
+    "sub-112",
+    "sub-062",
+    "sub-012",
+    "sub-139",
+    "sub-089",
+    "sub-039",
+    "sub-116",
+    "sub-066",
+    "sub-016",
+    "sub-143",
+    "sub-093",
+    "sub-043",
+    "sub-120",
+    "sub-070",
+    "sub-020",
+    "sub-147",
+    "sub-097",
+    "sub-047",
+    "sub-124",
+    "sub-074",
+    "sub-024",
+    "sub-101",
+    "sub-051",
+    "sub-001",
+    "sub-128",
+    "sub-078",
+    "sub-028",
+    "sub-105",
+    "sub-055",
+    "sub-005",
+    "sub-132",
+    "sub-082",
+    "sub-032",
+    "sub-109",
+    "sub-059",
+    "sub-009",
+    "sub-136",
+    "sub-086",
+    "sub-036",
+    "sub-113",
+    "sub-063",
+    "sub-013",
+    "sub-140",
+    "sub-090",
+    "sub-040",
+    "sub-117",
+    "sub-067",
+    "sub-017",
+    "sub-144",
+    "sub-094",
+    "sub-044",
+    "sub-121",
+    "sub-071",
+    "sub-021",
+    "sub-148",
+    "sub-098",
+    "sub-048",
+    "sub-125",
+    "sub-075",
+    "sub-025",
+    "sub-102",
+    "sub-052",
+    "sub-002",
+    "sub-129",
+    "sub-079",
+    "sub-029",
+    "sub-106",
+    "sub-056",
+    "sub-006",
+    "sub-133",
+    "sub-083",
+    "sub-033",
+    "sub-110",
+    "sub-060",
+    "sub-010",
+    "sub-137",
+    "sub-087",
+    "sub-037",
+    "sub-114",
+    "sub-064",
+    "sub-014",
+    "sub-141",
+    "sub-091",
+    "sub-041",
+    "sub-118",
+    "sub-068",
+    "sub-018",
+    "sub-145",
+    "sub-095",
+    "sub-045",
+    "sub-122",
+    "sub-072",
+    "sub-022",
+    "sub-149",
+    "sub-099",
+    "sub-049",
+    "sub-126",
+    "sub-076",
+    "sub-026",
+    "sub-103",
+    "sub-053",
+    "sub-003",
+    "sub-130",
+    "sub-080",
+    "sub-030",
+    "sub-107",
+    "sub-057",
+    "sub-007",
+    "sub-134",
+    "sub-084",
+    "sub-034",
+    "sub-111",
+    "sub-061",
+    "sub-011",
+    "sub-138",
+    "sub-088",
+    "sub-038",
+    "sub-115",
+    "sub-065",
+    "sub-015",
+    "sub-142",
+    "sub-092",
+    "sub-042",
+    "sub-119",
+    "sub-069",
+    "sub-019",
+    "sub-146",
+    "sub-096",
+    "sub-046",
+    "sub-123",
+    "sub-073",
+    "sub-023",
+    "sub-150",
+    "sub-100",
+    "sub-050"
+  ],
+  "oracle_ordered": true,
+  "oracle_snapshot": null,
+  "binding_reject_statuses": [
+    400,
+    409,
+    422
+  ],
+  "binding_cases_expected": 0,
+  "bindings": [],
+  "mutations": [],
+  "errors": [],
+  "notes": [
+    "Static contract: the dataset must remain unchanged across all traversals."
+  ]
+}
