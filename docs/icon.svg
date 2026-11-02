@@ -7,22 +7,23 @@
   aria-labelledby="title desc"
 >
   <title id="title">CursorProof</title>
-  <desc id="desc">Linked pages and a checked shield represent a verified pagination stream.</desc>
+  <desc id="desc">One page linked to the next above a shield with a check mark: a verified pagination stream.</desc>
   <rect x="4" y="4" width="120" height="120" rx="26" fill="#162237" />
   <g fill="none" stroke="#a9b8cf" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="23" y="27" width="25" height="33" rx="5" />
-    <rect x="55" y="27" width="25" height="33" rx="5" />
-    <path d="M31 38h9m-9 10h9m23-10h9m-9 10h9M48 44h7M35 60v19h22" />
+    <rect x="22" y="18" width="30" height="36" rx="6" />
+    <rect x="76" y="18" width="30" height="36" rx="6" />
+    <path d="M31 31h12m-12 10h12M85 31h12m-12 10h12" />
+    <path d="M57 36h14m-5-5 5 5-5 5" />
   </g>
   <path
-    d="M82 55l22 9v19c0 14-12 25-22 30-10-5-22-16-22-30V64z"
+    d="M64 62l22 9v14c0 13-11 22-22 27-11-5-22-14-22-27V71z"
     fill="#162237"
     stroke="#59d3a4"
     stroke-width="4"
     stroke-linejoin="round"
   />
   <path
-    d="M72 82l7 7 14-17"
+    d="M53 87l8 8 13-15"
     fill="none"
     stroke="#59d3a4"
     stroke-width="5"
