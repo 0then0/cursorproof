@@ -5,6 +5,8 @@ source; unreleased changes are not available in the latest PyPI package.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-07
+
 ### Added
 
 - Explicit `method: POST` pagination with a JSON `body`, for APIs such as Qdrant
@@ -90,7 +92,8 @@ source; unreleased changes are not available in the latest PyPI package.
 - Initial release of the pagination checker, including token traversal,
   ordering and duplicate checks, independent oracles, saved traces and replay.
 
-[Unreleased]: https://github.com/0then0/cursorproof/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/0then0/cursorproof/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/0then0/cursorproof/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/0then0/cursorproof/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/0then0/cursorproof/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/0then0/cursorproof/compare/v0.1.1...v0.1.2
