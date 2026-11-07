@@ -19,6 +19,12 @@ source; unreleased changes are not available in the latest PyPI package.
   unchanged.
 - A local Scroll-shaped test API, a Qdrant Scroll example configuration and a
   [Qdrant Scroll validation](docs/qdrant-scroll.md) with integer and UUID collections.
+- Python 3.15 in the CI matrix, including the Django/DRF integration run.
+
+### Changed
+
+- CI and release workflows use uv 0.13.7, and the build backend requirement is
+  `uv_build>=0.13.7,<0.14`. The built wheel contents are unchanged.
 
 ## [0.2.1] - 2026-11-02
 

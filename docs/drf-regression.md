@@ -165,6 +165,6 @@ check. They are skipped when Django or DRF is absent. URL-mode unit tests live
 in `tests/test_url_pagination.py` and use HTTPX transports without Django.
 
 CI builds and installs the wheel, then runs the integration tests on Python
-3.12 through 3.14. Core checks also run on Python 3.10 and 3.11.
+3.12 through 3.15. Core checks also run on Python 3.10 and 3.11.
 To run the remaining project checks, see
 [Development](../README.md#development).

@@ -17,7 +17,7 @@ in an issue before implementing them. Small fixes can go directly to a PR.
 
 ## Set up a checkout
 
-Use Python 3.10 or newer and [uv](https://docs.astral.sh/uv/). CI uses uv 0.12.18.
+Use Python 3.10 or newer and [uv](https://docs.astral.sh/uv/). CI uses uv 0.13.7.
 
 ```sh
 git clone https://github.com/0then0/cursorproof.git
@@ -55,7 +55,7 @@ UTF-8, LF line endings, four-space Python indentation and two-space YAML,
 JSON and TOML indentation. Ruff is authoritative for Python formatting.
 
 Core tests use local fixtures and do not need an external API. CI runs on
-Python 3.10 through 3.14. The optional Django/DRF tests require Python 3.12 or
+Python 3.10 through 3.15. The optional Django/DRF tests require Python 3.12 or
 newer and are skipped when those frameworks are absent. Follow the
 [integration instructions](docs/drf-regression.md#run-the-example) to test the
 built wheel in a separate environment with a disposable SQLite database.

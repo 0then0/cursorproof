@@ -187,8 +187,8 @@ The optional locked `integration` group adds Django/DRF for tests against a real
 HTTP endpoint. Follow the
 [integration instructions](https://github.com/0then0/cursorproof/blob/main/docs/drf-regression.md#run-the-example)
 to use a separate environment and the built wheel. CI runs the core checks
-on Python 3.10 through 3.14. The Django/DRF integration tests require
-Python 3.12 or newer and run on Python 3.12 through 3.14.
+on Python 3.10 through 3.15. The Django/DRF integration tests require
+Python 3.12 or newer and run on Python 3.12 through 3.15.
 
 ## Contributing and support
 
