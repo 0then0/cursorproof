@@ -1,0 +1,36 @@
+# Qdrant Scroll: POST /collections/{name}/points/scroll with a JSON body.
+# The filter and other body fields are sent unchanged on every page. CursorProof adds
+# `limit` and, after the first page, `offset` with the exact JSON type the server returned
+# (an integer point ID or a UUID string). It never derives the cursor from the last ID.
+url: http://127.0.0.1:6333/collections/cursorproof_ids/points/scroll
+method: POST
+# headers:
+#   api-key: ${QDRANT_API_KEY}
+body:
+  filter:
+    must:
+      - key: group
+        match:
+          value: keep
+  with_payload: ["group", "rank"]
+  with_vector: false
+pagination:
+  mode: token
+  cursor_param: offset
+  limit_param: limit
+  terminal_values: [null]
+response:
+  items: $.result.points
+  next_cursor: $.result.next_page_offset
+  id: $.id
+ordering:
+  - field: id
+    type: number
+limits: [1, 7, 10, 25, 100]
+max_pages: 1000
+max_items: 10000
+# An independent expected population is what establishes completeness. Replace the
+# command with one that derives the IDs from your fixture, not from Qdrant itself.
+# oracle:
+#   command: [python, oracle.py]
+#   ordered: true

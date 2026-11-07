@@ -7,6 +7,7 @@ the recorded observations. For installation and a local demo, see the
 - [Run a check](#run-a-check)
 - [Configure the API and response fields](#configuration)
 - [Follow continuation URLs](#continuation-urls)
+- [Paginate with a POST JSON body](#post-pagination-with-a-json-body)
 - [Compare against an oracle](#oracle)
 - [Choose consistency and mutation checks](#consistency-and-mutation-hooks)
 - [Test cursor binding](#cursor-binding)
@@ -82,8 +83,9 @@ Paths support `$`, dotted fields (`$.results`, `$.meta.cursor`), and array indic
 (`$.data[0].id`); they are a small notation, not full JSONPath. Item paths are
 relative to each item. Bare field names such as `created_at` are allowed.
 
-IDs must be strings or integers; `"1"` and `1` are different identities. Cursor
-values must be strings or explicit terminal values. An empty string is a valid
+IDs must be strings or integers; `"1"` and `1` are different identities. In the
+default GET mode, cursor values must be strings or explicit terminal values (a
+[POST body](#post-pagination-with-a-json-body) also accepts integers). An empty string is a valid
 cursor unless added to `terminal_values`. A missing cursor field is an error.
 An empty page with a continuation cursor is allowed. A short page alone does not
 signal completion. Ordering is lexicographic across **all** configured fields,
@@ -194,6 +196,75 @@ limit and one repetition, as described below.
 
 See the [Django REST framework example](drf-regression.md) for a local HTTP/ORM
 setup, an independent oracle, pinned versions and replay commands.
+
+## POST pagination with a JSON body
+
+Some APIs, such as Qdrant Scroll, page with `POST` and carry the page size and cursor
+in a JSON body. Select this mode explicitly with `method: POST` and a `body` object.
+The default remains `GET` with query parameters; a `body` without `method: POST` is
+rejected. The mode needs `pagination.mode: token` and is not in CursorProof 0.2.1 or earlier.
+
+```yaml
+url: http://127.0.0.1:6333/collections/points/points/scroll
+method: POST
+body:
+  filter:
+    must:
+      - key: group
+        match: { value: keep }
+  with_payload: [group]
+pagination:
+  cursor_param: offset # top-level body field for the cursor
+  limit_param: limit # top-level body field for the page size
+  terminal_values: [null]
+response:
+  items: $.result.points
+  next_cursor: $.result.next_page_offset
+  id: $.id
+```
+
+See [examples/qdrant-scroll.yml](../examples/qdrant-scroll.yml) and the
+[Qdrant Scroll validation](qdrant-scroll.md).
+
+### Request construction
+
+- `body` must be plain JSON data: strings, integers, finite numbers, booleans, `null`,
+  arrays and objects with string keys. Quote YAML dates; unsupported values are
+  rejected without echoing them. Nesting is limited to 64 levels. Environment
+  references are expanded in body strings.
+- `cursor_param` and `limit_param` name **top-level** body fields and must not appear
+  in `body`, `parameters` or the URL query. Nested cursor paths are not supported.
+- Every page sends a fresh copy of `body` plus `limit_param` and, after the first page,
+  `cursor_param`. The first request has no cursor field. All other fields, including
+  the filter and sort, are identical on every page and at every page size. The
+  configuration object is never modified. Query `parameters` and the URL query still
+  go in the query string (for example Qdrant's `consistency`).
+- The request carries `Content-Type: application/json`. Redirects are not followed,
+  so a `307` or `308` is an execution error. Timeouts, response limits and the page
+  and item budgets are unchanged.
+
+### Cursor types and termination
+
+A server cursor may be `null`, a string, or an integer. Booleans, fractions
+(including `1.0`), arrays and objects are execution errors. The cursor is opaque:
+CursorProof sends it back with its original JSON type and never derives it from the
+last ID. `0` and `""` are valid cursors. `1` and `"1"` are different cursors in every
+comparison: the next request, `terminal_values`, cycle detection and trace aliases.
+Integers keep arbitrary precision, so values above 2^53 are not rounded.
+
+Termination uses `terminal_values`, whose entries may be `null`, strings or integers
+in this mode. Matching compares type and value, so `[null, 0]` ends on `0` but not on
+`"0"` or `false`. Integer terminals are rejected for GET.
+
+### Compatible checks
+
+Duplicate, ordering, `has_more`, oracle, cycle, budget and page-size checks apply
+unchanged, as do mutation hooks and boundary testing, which only prepare data and
+do not depend on the request shape. `cursor_binding` is supported for **query
+parameters** declared in `parameters`: the probe changes the query value and resends
+the cursor in the body. Binding probes for body fields are not supported, and a
+binding naming only a body field is rejected. `POST` with `pagination.mode: url` is
+rejected. The oracle request is always a `GET`.
 
 ## Oracle
 
@@ -449,6 +520,16 @@ offline replay remains available.
 Ordinary query parameter values also affect the fingerprint, including values expanded
 from environment variables, so changing a tenant or filter rejects live replay.
 
+For a [POST body](#post-pagination-with-a-json-body), the fingerprint covers the method
+and the whole body, including filters, sort, `cursor_param`, `limit_param` and the JSON
+types of values (`1`, `"1"` and `true` differ). Replay always rebuilds requests from the
+configuration you supply, not from the trace. A **top-level** body field with a
+credential-like name (`api_key`, `token`, `password`, and so on) is excluded from the
+fingerprint so credentials can rotate, and it counts as a credential for the
+`--allow-unverified-auth-scope` check. Nested names are not heuristically redacted:
+Qdrant filters use a `key` field that selects a payload field, and changing it must
+reject replay. Put credentials in headers or top-level credential fields.
+
 ### Trace compatibility
 
 Trace schema version 2 migrates version 1 static traces. Older snapshot and cursor-binding
@@ -458,7 +539,12 @@ but cannot be live-replayed safely.
 Traces with the older configuration fingerprint algorithm remain available for offline
 replay; generate a fresh trace for live replay with the current contract algorithm.
 Live replay compares that contract, not the display URL, which may contain redactions.
-Both token and URL mode use trace schema 2. URL-mode `cursor` and `next_cursor`
+Traces from before POST support contain no method or body fields and load as `GET`.
+A `POST` trace records `request_method` and `request_body`, the sorted names of the
+fixed top-level fields and the cursor and limit field names. It stores no body values;
+only the cursor aliases and the replay fingerprint stand for them, and a `POST` trace
+without its body shape is reported as incomplete. Token, URL and POST modes use trace
+schema 2. URL-mode `cursor` and `next_cursor`
 contain aliases for entire resolved continuation URLs. Request descriptions use
 the same aliases for cursor query values and mask sensitive query parameters.
 Raw continuation URLs are not stored in a separate field.

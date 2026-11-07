@@ -1,6 +1,6 @@
 from typing import TypeAlias
 
-from cursorproof.config import Identity
+from cursorproof.config import Cursor, Identity
 from cursorproof.models import (
     BindingObservation,
     Finding,
@@ -12,7 +12,7 @@ from cursorproof.models import (
 )
 
 CursorPageState: TypeAlias = tuple[
-    str,
+    tuple[type[str] | type[int], Cursor],
     tuple[tuple[type[str] | type[int], Identity], ...],
 ]
 
@@ -21,8 +21,9 @@ def identity_key(value: Identity) -> tuple[type[str] | type[int], Identity]:
     return type(value), value
 
 
-def cursor_page_state(next_cursor: str, item_ids: list[Identity]) -> CursorPageState:
-    return next_cursor, tuple(identity_key(item_id) for item_id in item_ids)
+def cursor_page_state(next_cursor: Cursor, item_ids: list[Identity]) -> CursorPageState:
+    # The cursor type is part of the state: `1` and "1" are different opaque cursors.
+    return (type(next_cursor), next_cursor), tuple(identity_key(item_id) for item_id in item_ids)
 
 
 def analyze(trace: Trace) -> Report:
@@ -44,6 +45,8 @@ def analyze(trace: Trace) -> Report:
             for item in page.items
         ):
             errors.append(Issue(message="Snapshot trace is missing a full-record fingerprint"))
+    if (trace.request_method == "POST") != (trace.request_body is not None):
+        errors.append(Issue(message="Trace request method and JSON body evidence disagree"))
     complete: list[tuple[int, list[Identity]]] = []
     all_ids: set[tuple[type[str] | type[int], Identity]] = set()
     total_items = 0

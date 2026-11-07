@@ -1,0 +1,25 @@
+# Local POST pagination demo: python examples/scroll_api.py, then
+# cursorproof run examples/scroll-api.yml
+url: http://127.0.0.1:8766/scroll/int
+method: POST
+body:
+  filter:
+    must:
+      - key: group
+        match:
+          value: keep
+  with_payload: ["group"]
+  with_vector: false
+pagination:
+  cursor_param: offset
+  limit_param: limit
+response:
+  items: $.result.points
+  next_cursor: $.result.next_page_offset
+  id: $.id
+ordering:
+  - field: id
+    type: number
+limits: [1, 3, 7, 20]
+oracle:
+  url: http://127.0.0.1:8766/oracle/int

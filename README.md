@@ -128,6 +128,16 @@ could omit the same records. See the guide for
 [finding codes](https://github.com/0then0/cursorproof/blob/main/docs/guide.md#findings-and-exit-codes)
 and [trace privacy](https://github.com/0then0/cursorproof/blob/main/docs/guide.md#reproduction-and-privacy).
 
+## POST pagination with a JSON body
+
+For APIs that page with `POST`, such as Qdrant Scroll, set `method: POST` and a
+`body`. CursorProof adds the page size and cursor as top-level body fields, keeps
+every other field unchanged and sends integer or string cursors with their original
+JSON type. See the
+[POST body guide](https://github.com/0then0/cursorproof/blob/main/docs/guide.md#post-pagination-with-a-json-body),
+the [Qdrant example](https://github.com/0then0/cursorproof/blob/main/examples/qdrant-scroll.yml)
+and its [validation against a real Qdrant](https://github.com/0then0/cursorproof/blob/main/docs/qdrant-scroll.md).
+
 ## Django REST framework example
 
 The [DRF configuration](https://github.com/0then0/cursorproof/blob/main/examples/drf.yml)
@@ -154,7 +164,7 @@ boundary tests execute commands supplied in your configuration and can change
 data. Use controlled test environments and read the
 [consistency and mutation documentation](https://github.com/0then0/cursorproof/blob/main/docs/guide.md#consistency-and-mutation-hooks)
 before enabling them. URL mode does not support boundary tests or cursor binding
-probes.
+probes. POST mode supports query-parameter binding probes.
 
 Run `cursorproof --help` or `cursorproof COMMAND --help` for command options.
 

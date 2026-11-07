@@ -5,6 +5,21 @@ source; unreleased changes are not available in the latest PyPI package.
 
 ## [Unreleased]
 
+### Added
+
+- Explicit `method: POST` pagination with a JSON `body`, for APIs such as Qdrant
+  Scroll. The cursor and page size are top-level body fields; every other field is
+  sent unchanged on every page.
+- Integer cursors and integer `terminal_values` in POST mode. Cursors keep their JSON
+  type (`0` is valid, `1` and `"1"` differ, large integers stay exact) in requests,
+  termination, cycle detection and trace aliases.
+- Trace fields `request_method` and `request_body` (field names only, no values).
+  The replay fingerprint covers the method and body; top-level credential-named body
+  fields are excluded so credentials can rotate. GET traces and fingerprints are
+  unchanged.
+- A local Scroll-shaped test API, a Qdrant Scroll example configuration and a
+  [Qdrant Scroll validation](docs/qdrant-scroll.md) with integer and UUID collections.
+
 ## [0.2.1] - 2026-11-02
 
 ### Added

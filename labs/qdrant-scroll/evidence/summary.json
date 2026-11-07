@@ -1,0 +1,54 @@
+{
+  "image": "qdrant/qdrant:v1.20.0",
+  "commands": [
+    "docker run -d --rm --name cursorproof-qdrant-lab -p 127.0.0.1:16333:6333 qdrant/qdrant:v1.20.0",
+    "PUT http://127.0.0.1:16333/collections/cursorproof_ints (vectors size 4, Dot)",
+    "PUT http://127.0.0.1:16333/collections/cursorproof_ints/points?wait=true (44 integer-ID points)",
+    "PUT http://127.0.0.1:16333/collections/cursorproof_ints/index?wait=true (keyword index on payload.group)",
+    "PUT http://127.0.0.1:16333/collections/cursorproof_uuids and its points/index (44 UUID points)"
+  ],
+  "runs": {
+    "ints": {
+      "exit_code": 0,
+      "findings": [],
+      "traversals": 5,
+      "pages": 41,
+      "unique_items": 30,
+      "expected_items": 30,
+      "every_stream_equals_expected_ids": true,
+      "offline_replay_exit_code": 0,
+      "live_replay_exit_code": 0
+    },
+    "uuids": {
+      "exit_code": 0,
+      "findings": [],
+      "traversals": 5,
+      "pages": 41,
+      "unique_items": 30,
+      "expected_items": 30,
+      "every_stream_equals_expected_ids": true,
+      "offline_replay_exit_code": 0,
+      "live_replay_exit_code": 0
+    },
+    "ints-without-filter": {
+      "exit_code": 1,
+      "findings": [
+        "CP010"
+      ],
+      "traversals": 5,
+      "pages": 59,
+      "unique_items": 44,
+      "expected_items": 30,
+      "every_stream_equals_expected_ids": false,
+      "offline_replay_exit_code": 1,
+      "live_replay_exit_code": 1
+    }
+  },
+  "qdrant": {
+    "title": "qdrant - vector search engine",
+    "version": "1.20.0",
+    "commit": "222b2e44ab1c3f17e8246396ead6558e45041df7"
+  },
+  "image_digest": "qdrant/qdrant@sha256:9bfc89f9914fc14876a88c05270685921a55b8877b254a98bcc1cc2f0a424cd2",
+  "passed": true
+}

@@ -1,10 +1,11 @@
 import hashlib
 import json
 import re
+from typing import cast
 from urllib.parse import parse_qsl, quote, quote_plus, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
-from cursorproof.config import Config, EnvironmentSecrets, Identity
+from cursorproof.config import Config, Cursor, EnvironmentSecrets, Identity
 
 _SENSITIVE_PARTS = {
     "auth",
@@ -44,7 +45,7 @@ def is_sensitive_name(name: str) -> bool:
 
 
 def has_http_credentials(config: Config) -> bool:
-    sources = [(config.url, config.headers, config.parameters)]
+    sources = [(config.url, config.headers, {**config.parameters, **(config.body or {})})]
     if config.oracle:
         sources.append((config.oracle.url or "", config.oracle.headers, {}))
     return any(
@@ -74,7 +75,7 @@ class Redactor:
             key=len,
             reverse=True,
         )
-        self.cursors: dict[str, str] = {}
+        self.cursors: dict[tuple[type[str] | type[int], Cursor], str] = {}
         self.identities: dict[tuple[type[str] | type[int], Identity], str] = {}
         self.prefix = uuid4().hex
 
@@ -96,12 +97,14 @@ class Redactor:
             return self.identities[key]
         return value
 
-    def cursor(self, value: str | None) -> str | None:
+    def cursor(self, value: Cursor | None) -> str | None:
+        """Alias a cursor; `1` and `"1"` are different cursors with different aliases."""
         if value is None:
             return None
-        if value not in self.cursors:
-            self.cursors[value] = f"cursor_{len(self.cursors) + 1}"
-        return self.cursors[value]
+        key = type(value), value
+        if key not in self.cursors:
+            self.cursors[key] = f"cursor_{len(self.cursors) + 1}"
+        return self.cursors[key]
 
     def url(self, value: str, cursor_param: str, *, continuation: str | None = None) -> str:
         parts = urlsplit(value)
@@ -180,7 +183,18 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str |
     if config.pagination.mode == "token":
         # Preserve the v2 fingerprints of existing token configurations.
         del contract["pagination"]["mode"]
-    sanitized_config = sanitize(contract)
+    body = contract.pop("body")
+    if config.method == "GET":
+        del contract["method"]
+    sanitized_config = cast(dict[str, object], sanitize(contract))
+    if config.method == "POST":
+        # Only top-level names are credential-like: nested names such as Qdrant's
+        # filter `key` select payload fields and must remain part of the contract.
+        sanitized_config["method"] = "POST"
+        sanitized_config["body"] = {
+            name: "[REDACTED]" if is_sensitive_name(name) else value
+            for name, value in (body or {}).items()
+        }
     if not fingerprint_safe:
         return None
     payload = {"contract_version": 2, "config": sanitized_config}

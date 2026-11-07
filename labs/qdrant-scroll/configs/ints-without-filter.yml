@@ -1,0 +1,36 @@
+url: http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll
+method: POST
+body:
+  with_payload:
+  - group
+  - rank
+  with_vector: false
+pagination:
+  mode: token
+  cursor_param: offset
+  limit_param: limit
+  terminal_values:
+  - null
+response:
+  items: $.result.points
+  next_cursor: $.result.next_page_offset
+  id: $.id
+ordering:
+- field: id
+  type: number
+limits:
+- 1
+- 7
+- 10
+- 25
+- 100
+repeats: 1
+max_pages: 1000
+max_items: 10000
+oracle:
+  command:
+  - python3
+  - ../oracle.py
+  - ints
+  format: json
+  ordered: true

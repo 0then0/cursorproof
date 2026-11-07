@@ -1,8 +1,9 @@
 import json
+import math
 import os
 import re
 from pathlib import Path
-from typing import Annotated, Literal, TypeAlias
+from typing import Annotated, Any, Literal, TypeAlias
 from urllib.parse import parse_qs, unquote, urlsplit
 
 import yaml
@@ -12,6 +13,7 @@ from cursorproof.paths import tokens
 
 Parameter: TypeAlias = str | int
 Identity: TypeAlias = str | int
+Cursor: TypeAlias = str | int
 Positive = Annotated[int, Field(gt=0)]
 _ENV = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
@@ -86,15 +88,49 @@ def http_headers(value: dict[str, str]) -> dict[str, str]:
     return value
 
 
-def terminal_default() -> list[str | None]:
+def terminal_default() -> list[str | int | None]:
     return [None]
+
+
+MAX_BODY_DEPTH = 64
+
+
+def json_body(value: dict[str, Any]) -> dict[str, Any]:
+    """Accept only bounded plain JSON data; YAML dates and other objects have no JSON meaning."""
+
+    def check(item: object, location: str, depth: int = 0) -> None:
+        if depth > MAX_BODY_DEPTH:
+            # Deeper values pass parsing but break serialization for fingerprints and requests.
+            raise ValueError(f"body is nested deeper than {MAX_BODY_DEPTH} levels")
+        if item is None or type(item) in {str, bool, int}:
+            return
+        if type(item) is float:
+            if not math.isfinite(item):
+                raise ValueError(f"{location} must be a finite JSON number")
+            return
+        if type(item) is list:
+            for index, child in enumerate(item):
+                check(child, f"{location}[{index}]", depth + 1)
+            return
+        if type(item) is dict:
+            for name, child in item.items():
+                if type(name) is not str:
+                    raise ValueError(f"{location} has a non-string object key")
+                check(child, f"{location}.{name}", depth + 1)
+            return
+        raise ValueError(
+            f"{location} is not a JSON value (quote dates and other special YAML scalars)"
+        )
+
+    check(value, "body")
+    return value
 
 
 class Pagination(Model):
     mode: Literal["token", "url"] = "token"
     cursor_param: str = "cursor"
     limit_param: str = "limit"
-    terminal_values: list[str | None] = Field(default_factory=terminal_default, min_length=1)
+    terminal_values: list[str | int | None] = Field(default_factory=terminal_default, min_length=1)
 
     @model_validator(mode="after")
     def distinct_names(self) -> "Pagination":
@@ -209,6 +245,8 @@ class Binding(Model):
 
 class Config(Model):
     url: str
+    method: Literal["GET", "POST"] = "GET"
+    body: dict[str, Any] | None = None
     headers: dict[str, str] = Field(default_factory=dict)
     parameters: dict[str, Parameter] = Field(default_factory=dict)
     pagination: Pagination = Field(default_factory=Pagination)
@@ -230,8 +268,30 @@ class Config(Model):
     _url = field_validator("url")(http_url)
     _headers = field_validator("headers")(http_headers)
 
+    @field_validator("body")
+    @classmethod
+    def body_is_json(cls, value: dict[str, Any] | None) -> dict[str, Any] | None:
+        return json_body(value) if value is not None else None
+
+    @property
+    def body_mode(self) -> bool:
+        """The cursor and page size travel in a JSON request body."""
+        return self.method == "POST"
+
     @model_validator(mode="after")
     def contract(self) -> "Config":
+        if self.method == "GET" and self.body is not None:
+            raise ValueError("body requires method: POST")
+        if self.body_mode:
+            if self.pagination.mode != "token":
+                raise ValueError("POST with a JSON body requires pagination.mode: token")
+            for name in (self.pagination.cursor_param, self.pagination.limit_param):
+                if self.body is not None and name in self.body:
+                    raise ValueError(
+                        "Cursor and limit belong in pagination/limits, not the JSON body"
+                    )
+        elif any(type(value) is int for value in self.pagination.terminal_values):
+            raise ValueError("Integer terminal_values require method: POST with a JSON body")
         if self.pagination.mode == "url":
             url_reference(self.url)
             if self.cursor_binding is not None or self.boundary_testing is not None:
@@ -270,6 +330,11 @@ class Config(Model):
                 raise ValueError("A static oracle cannot establish completeness for live keyset")
         if self.cursor_binding:
             for name, alternatives in self.cursor_binding.parameters.items():
+                if self.body is not None and name in self.body and name not in self.parameters:
+                    raise ValueError(
+                        "cursor_binding covers query parameters only; JSON body fields "
+                        "are not supported"
+                    )
                 if name in reserved or name not in self.parameters:
                     raise ValueError("Binding parameters must be declared in parameters")
                 if any(str(value) == str(self.parameters[name]) for value in alternatives):

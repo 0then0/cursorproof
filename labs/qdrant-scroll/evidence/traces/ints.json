@@ -1,0 +1,1563 @@
+{
+  "schema_version": 2,
+  "tool_version": "0.2.0",
+  "replay_fingerprint": "49481df459ee510a8fcd4cc072a44bd3d32d01bc5fe8beb7c54de49846534b2c",
+  "request_method": "POST",
+  "request_body": {
+    "fixed_fields": [
+      "filter",
+      "with_payload",
+      "with_vector"
+    ],
+    "cursor_field": "offset",
+    "limit_field": "limit"
+  },
+  "expected_unique_items": null,
+  "consistency": "static",
+  "ordering_fields": [
+    "id"
+  ],
+  "traversals": [
+    {
+      "limit": 1,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": null,
+          "next_cursor": "cursor_1",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 0,
+              "sort_key": [
+                0
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 1,
+              "sort_key": [
+                1
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 3,
+              "sort_key": [
+                2
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_3",
+          "next_cursor": "cursor_4",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 4,
+              "sort_key": [
+                3
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 5,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_4",
+          "next_cursor": "cursor_5",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 6,
+              "sort_key": [
+                4
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 6,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_5",
+          "next_cursor": "cursor_6",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 7,
+              "sort_key": [
+                5
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 7,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_6",
+          "next_cursor": "cursor_7",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 9,
+              "sort_key": [
+                6
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 8,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_7",
+          "next_cursor": "cursor_8",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 10,
+              "sort_key": [
+                7
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 9,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_8",
+          "next_cursor": "cursor_9",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 12,
+              "sort_key": [
+                8
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 10,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_9",
+          "next_cursor": "cursor_10",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 13,
+              "sort_key": [
+                9
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 11,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_10",
+          "next_cursor": "cursor_11",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 15,
+              "sort_key": [
+                10
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 12,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_11",
+          "next_cursor": "cursor_12",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 16,
+              "sort_key": [
+                11
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 13,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_12",
+          "next_cursor": "cursor_13",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 18,
+              "sort_key": [
+                12
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 14,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_13",
+          "next_cursor": "cursor_14",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 19,
+              "sort_key": [
+                13
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 15,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_14",
+          "next_cursor": "cursor_15",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 21,
+              "sort_key": [
+                14
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 16,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_15",
+          "next_cursor": "cursor_16",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 22,
+              "sort_key": [
+                15
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 17,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_16",
+          "next_cursor": "cursor_17",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 24,
+              "sort_key": [
+                16
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 18,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_17",
+          "next_cursor": "cursor_18",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 25,
+              "sort_key": [
+                17
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 19,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_18",
+          "next_cursor": "cursor_19",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 27,
+              "sort_key": [
+                18
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 20,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_19",
+          "next_cursor": "cursor_20",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 28,
+              "sort_key": [
+                19
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 21,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_20",
+          "next_cursor": "cursor_21",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 30,
+              "sort_key": [
+                20
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 22,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_21",
+          "next_cursor": "cursor_22",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 31,
+              "sort_key": [
+                21
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 23,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_22",
+          "next_cursor": "cursor_23",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 33,
+              "sort_key": [
+                22
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 24,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_23",
+          "next_cursor": "cursor_24",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 34,
+              "sort_key": [
+                23
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 25,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_24",
+          "next_cursor": "cursor_25",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 36,
+              "sort_key": [
+                24
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 26,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_25",
+          "next_cursor": "cursor_26",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 37,
+              "sort_key": [
+                25
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 27,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_26",
+          "next_cursor": "cursor_27",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 39,
+              "sort_key": [
+                26
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 28,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_27",
+          "next_cursor": "cursor_28",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 9007199254740993,
+              "sort_key": [
+                27
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 29,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_28",
+          "next_cursor": "cursor_29",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 9223372036854775808,
+              "sort_key": [
+                28
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 30,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_29",
+          "next_cursor": null,
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 18446744073709551614,
+              "sort_key": [
+                29
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    },
+    {
+      "limit": 7,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": null,
+          "next_cursor": "cursor_7",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 0,
+              "sort_key": [
+                0
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 1,
+              "sort_key": [
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 3,
+              "sort_key": [
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 4,
+              "sort_key": [
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 6,
+              "sort_key": [
+                4
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 7,
+              "sort_key": [
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9,
+              "sort_key": [
+                6
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_7",
+          "next_cursor": "cursor_14",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 10,
+              "sort_key": [
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 12,
+              "sort_key": [
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 13,
+              "sort_key": [
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 15,
+              "sort_key": [
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 16,
+              "sort_key": [
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 18,
+              "sort_key": [
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 19,
+              "sort_key": [
+                13
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_14",
+          "next_cursor": "cursor_21",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 21,
+              "sort_key": [
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 22,
+              "sort_key": [
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 24,
+              "sort_key": [
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 25,
+              "sort_key": [
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 27,
+              "sort_key": [
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 28,
+              "sort_key": [
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 30,
+              "sort_key": [
+                20
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_21",
+          "next_cursor": "cursor_28",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 31,
+              "sort_key": [
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 33,
+              "sort_key": [
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 34,
+              "sort_key": [
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 36,
+              "sort_key": [
+                24
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 37,
+              "sort_key": [
+                25
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 39,
+              "sort_key": [
+                26
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9007199254740993,
+              "sort_key": [
+                27
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 5,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_28",
+          "next_cursor": null,
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 9223372036854775808,
+              "sort_key": [
+                28
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 18446744073709551614,
+              "sort_key": [
+                29
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    },
+    {
+      "limit": 10,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": null,
+          "next_cursor": "cursor_10",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 0,
+              "sort_key": [
+                0
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 1,
+              "sort_key": [
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 3,
+              "sort_key": [
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 4,
+              "sort_key": [
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 6,
+              "sort_key": [
+                4
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 7,
+              "sort_key": [
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9,
+              "sort_key": [
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 10,
+              "sort_key": [
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 12,
+              "sort_key": [
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 13,
+              "sort_key": [
+                9
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_10",
+          "next_cursor": "cursor_20",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 15,
+              "sort_key": [
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 16,
+              "sort_key": [
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 18,
+              "sort_key": [
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 19,
+              "sort_key": [
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 21,
+              "sort_key": [
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 22,
+              "sort_key": [
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 24,
+              "sort_key": [
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 25,
+              "sort_key": [
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 27,
+              "sort_key": [
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 28,
+              "sort_key": [
+                19
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_20",
+          "next_cursor": null,
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 30,
+              "sort_key": [
+                20
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 31,
+              "sort_key": [
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 33,
+              "sort_key": [
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 34,
+              "sort_key": [
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 36,
+              "sort_key": [
+                24
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 37,
+              "sort_key": [
+                25
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 39,
+              "sort_key": [
+                26
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9007199254740993,
+              "sort_key": [
+                27
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9223372036854775808,
+              "sort_key": [
+                28
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 18446744073709551614,
+              "sort_key": [
+                29
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    },
+    {
+      "limit": 25,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": null,
+          "next_cursor": "cursor_25",
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 0,
+              "sort_key": [
+                0
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 1,
+              "sort_key": [
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 3,
+              "sort_key": [
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 4,
+              "sort_key": [
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 6,
+              "sort_key": [
+                4
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 7,
+              "sort_key": [
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9,
+              "sort_key": [
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 10,
+              "sort_key": [
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 12,
+              "sort_key": [
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 13,
+              "sort_key": [
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 15,
+              "sort_key": [
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 16,
+              "sort_key": [
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 18,
+              "sort_key": [
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 19,
+              "sort_key": [
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 21,
+              "sort_key": [
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 22,
+              "sort_key": [
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 24,
+              "sort_key": [
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 25,
+              "sort_key": [
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 27,
+              "sort_key": [
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 28,
+              "sort_key": [
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 30,
+              "sort_key": [
+                20
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 31,
+              "sort_key": [
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 33,
+              "sort_key": [
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 34,
+              "sort_key": [
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 36,
+              "sort_key": [
+                24
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": "cursor_25",
+          "next_cursor": null,
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 37,
+              "sort_key": [
+                25
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 39,
+              "sort_key": [
+                26
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9007199254740993,
+              "sort_key": [
+                27
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9223372036854775808,
+              "sort_key": [
+                28
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 18446744073709551614,
+              "sort_key": [
+                29
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    },
+    {
+      "limit": 100,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:16333/collections/cursorproof_ints/points/scroll",
+          "cursor": null,
+          "next_cursor": null,
+          "has_more": null,
+          "status": 200,
+          "items": [
+            {
+              "id": 0,
+              "sort_key": [
+                0
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 1,
+              "sort_key": [
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 3,
+              "sort_key": [
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 4,
+              "sort_key": [
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 6,
+              "sort_key": [
+                4
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 7,
+              "sort_key": [
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9,
+              "sort_key": [
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 10,
+              "sort_key": [
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 12,
+              "sort_key": [
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 13,
+              "sort_key": [
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 15,
+              "sort_key": [
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 16,
+              "sort_key": [
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 18,
+              "sort_key": [
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 19,
+              "sort_key": [
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 21,
+              "sort_key": [
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 22,
+              "sort_key": [
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 24,
+              "sort_key": [
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 25,
+              "sort_key": [
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 27,
+              "sort_key": [
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 28,
+              "sort_key": [
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 30,
+              "sort_key": [
+                20
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 31,
+              "sort_key": [
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 33,
+              "sort_key": [
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 34,
+              "sort_key": [
+                23
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 36,
+              "sort_key": [
+                24
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 37,
+              "sort_key": [
+                25
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 39,
+              "sort_key": [
+                26
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9007199254740993,
+              "sort_key": [
+                27
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 9223372036854775808,
+              "sort_key": [
+                28
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": 18446744073709551614,
+              "sort_key": [
+                29
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    }
+  ],
+  "oracle": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    9,
+    10,
+    12,
+    13,
+    15,
+    16,
+    18,
+    19,
+    21,
+    22,
+    24,
+    25,
+    27,
+    28,
+    30,
+    31,
+    33,
+    34,
+    36,
+    37,
+    39,
+    9007199254740993,
+    9223372036854775808,
+    18446744073709551614
+  ],
+  "oracle_ordered": true,
+  "oracle_snapshot": null,
+  "binding_reject_statuses": [
+    400,
+    409,
+    422
+  ],
+  "binding_cases_expected": 0,
+  "bindings": [],
+  "mutations": [],
+  "errors": [],
+  "notes": [
+    "Static contract: the dataset must remain unchanged across all traversals."
+  ]
+}

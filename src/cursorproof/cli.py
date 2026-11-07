@@ -71,8 +71,9 @@ def display(report: Report, output_format: Format) -> None:
         console.print(finding.message)
         if finding.item_ids:
             console.print(f"Items ({finding.count}): {finding.item_ids}")
+        method = report.trace.request_method
         for request in finding.requests:
-            console.print(f"  GET {request}")
+            console.print(f"  {method} {request}")
         for location in finding.locations:
             console.print(
                 f"  traversal {location.traversal}, page {location.page}"
@@ -81,7 +82,7 @@ def display(report: Report, output_format: Format) -> None:
             traversal = report.trace.traversals[location.traversal - 1]
             if location.page <= len(traversal.pages):
                 page = traversal.pages[location.page - 1]
-                console.print(f"    GET {page.request}")
+                console.print(f"    {method} {page.request}")
                 console.print(f"    cursor: {page.cursor} -> {page.next_cursor}")
         if finding.possible_cause:
             console.print(f"Possible cause: {finding.possible_cause}")

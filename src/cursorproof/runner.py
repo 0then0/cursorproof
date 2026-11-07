@@ -18,7 +18,7 @@ import httpx
 
 from cursorproof import __version__
 from cursorproof.checks import CursorPageState, analyze, cursor_page_state, identity_key
-from cursorproof.config import Config, Identity, Oracle, Ordering, Parameter, url_reference
+from cursorproof.config import Config, Cursor, Identity, Oracle, Ordering, Parameter, url_reference
 from cursorproof.models import (
     BindingObservation,
     BoundaryCase,
@@ -28,6 +28,7 @@ from cursorproof.models import (
     MutationEvent,
     Page,
     Report,
+    RequestBody,
     SnapshotItem,
     Trace,
     Traversal,
@@ -306,17 +307,38 @@ def content_fingerprint(item: object, fields: list[str]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def cursor_value(raw: object, config: Config) -> Cursor | None:
+    """Accept a server cursor without coercing it; its JSON type is part of its identity."""
+    if raw is None or type(raw) is str:
+        return cast(Cursor | None, raw)
+    if config.body_mode:
+        if type(raw) is int:
+            return raw
+        raise ExecutionError("Cursor must be a string, an integer or null")
+    raise ExecutionError("Cursor must be a string or null")
+
+
+def is_terminal(raw: Cursor | None, config: Config) -> bool:
+    """Exact JSON-typed membership: 1 and "1" differ, and bool never matches an integer."""
+    return any(
+        type(raw) is type(declared) and raw == declared
+        for declared in config.pagination.terminal_values
+    )
+
+
 def validate_binding_baseline(body: bytes, config: Config, limit: int) -> None:
     payload = decode_json(body)
     values = extract(payload, config.response.items)
     raw_cursor = extract(payload, config.response.next_cursor)
     if not isinstance(values, list) or len(values) > limit:
         raise ExecutionError("Changed query returned an invalid item list")
-    if raw_cursor is not None and not isinstance(raw_cursor, str):
-        raise ExecutionError("Changed query returned an invalid cursor")
+    try:
+        raw_cursor = cursor_value(raw_cursor, config)
+    except ExecutionError:
+        raise ExecutionError("Changed query returned an invalid cursor") from None
     if raw_cursor is None and None not in config.pagination.terminal_values:
         raise ExecutionError("Changed query returned an undeclared terminal cursor")
-    next_cursor = None if raw_cursor in config.pagination.terminal_values else raw_cursor
+    next_cursor = None if is_terminal(raw_cursor, config) else raw_cursor
     has_more = (
         extract(payload, config.response.has_more) if config.response.has_more is not None else None
     )
@@ -501,7 +523,7 @@ def run_mutations(config: Config, page: int, cwd: Path, trace: Trace) -> None:
 def probe_binding(
     client: httpx.Client,
     config: Config,
-    cursor: str,
+    cursor: Cursor,
     limit: int,
     trace: Trace,
     redactor: Redactor,
@@ -512,12 +534,8 @@ def probe_binding(
     for name, alternatives in binding.parameters.items():
         for alternative in alternatives:
             case += 1
-            params: dict[str, Parameter] = {
-                **config.parameters,
-                name: alternative,
-                config.pagination.limit_param: limit,
-            }
-            request = build_request(client, config.url, params)
+            params: dict[str, Parameter] = {**config.parameters, name: alternative}
+            request = page_request(client, config, limit, None, params)
             status, body = fetch(client, request, config.max_response_bytes)
             valid = False
             if 200 <= status < 300:
@@ -538,8 +556,7 @@ def probe_binding(
             )
             if not valid:
                 continue
-            cursor_params = {**params, config.pagination.cursor_param: cursor}
-            cursor_request = build_request(client, config.url, cursor_params)
+            cursor_request = page_request(client, config, limit, cursor, params)
             cursor_status, _ = fetch(client, cursor_request, config.max_response_bytes)
             trace.bindings.append(
                 BindingObservation(
@@ -556,6 +573,32 @@ def probe_binding(
 def build_request(client: httpx.Client, url: str, params: dict[str, Parameter]) -> httpx.Request:
     merged = httpx.URL(url).params.merge(params)
     return client.build_request("GET", url, params=merged)
+
+
+def page_request(
+    client: httpx.Client,
+    config: Config,
+    limit: int,
+    cursor: Cursor | None = None,
+    parameters: dict[str, Parameter] | None = None,
+) -> httpx.Request:
+    """Build one token-mode page request without mutating the configuration.
+
+    The cursor keeps its Python/JSON type. In body mode only the cursor and page-size
+    fields differ between pages; every other body field is copied unchanged.
+    """
+    params = dict(config.parameters if parameters is None else parameters)
+    pagination = config.pagination
+    if not config.body_mode:
+        params[pagination.limit_param] = limit
+        if cursor is not None:
+            params[pagination.cursor_param] = cursor
+        return build_request(client, config.url, params)
+    body: dict[str, object] = {**(config.body or {}), pagination.limit_param: limit}
+    if cursor is not None:
+        body[pagination.cursor_param] = cursor
+    merged = httpx.URL(config.url).params.merge(params)
+    return client.build_request(config.method, config.url, params=merged, json=body)
 
 
 def continuation_url(value: str, current: httpx.URL, initial: httpx.URL, config: Config) -> str:
@@ -606,29 +649,21 @@ def traverse(
     cwd: Path,
     run_number: int,
 ) -> None:
-    cursor: str | None = None
+    cursor: Cursor | None = None
     seen_page_states: dict[CursorPageState, int] = {}
     rows: list[RawItem] = []
     current_page = 1
     try:
-        initial_request = build_request(
-            client,
-            config.url,
-            {**config.parameters, config.pagination.limit_param: traversal.limit},
-        )
+        initial_request = page_request(client, config, traversal.limit)
         for current_page in range(1, config.max_pages + 1):
-            params: dict[str, Parameter] = {
-                **config.parameters,
-                config.pagination.limit_param: traversal.limit,
-            }
-            if cursor is not None:
-                params[config.pagination.cursor_param] = cursor
             if config.pagination.mode == "url":
                 request = (
-                    client.build_request("GET", cursor) if cursor is not None else initial_request
+                    client.build_request("GET", cast(str, cursor))
+                    if cursor is not None
+                    else initial_request
                 )
             else:
-                request = build_request(client, config.url, params)
+                request = page_request(client, config, traversal.limit, cursor)
             status, body = fetch(client, request, config.max_response_bytes)
             if not 200 <= status < 300:
                 raise ExecutionError(f"Traversal returned HTTP {status}")
@@ -640,14 +675,13 @@ def traverse(
                 if config.pagination.mode == "token":
                     raise
                 raise ExecutionError("Required continuation field is missing or invalid") from None
-            if raw_cursor is not None and not isinstance(raw_cursor, str):
-                raise ExecutionError("Cursor must be a string or null")
+            raw_cursor = cursor_value(raw_cursor, config)
             if raw_cursor is None and None not in config.pagination.terminal_values:
                 raise ExecutionError("Null cursor is not declared as a terminal value")
-            next_cursor = None if raw_cursor in config.pagination.terminal_values else raw_cursor
+            next_cursor = None if is_terminal(raw_cursor, config) else raw_cursor
             if config.pagination.mode == "url" and next_cursor is not None:
                 next_cursor = continuation_url(
-                    next_cursor, request.url, initial_request.url, config
+                    cast(str, next_cursor), request.url, initial_request.url, config
                 )
             has_more = (
                 extract(payload, config.response.has_more)
@@ -684,7 +718,9 @@ def traverse(
                     request=redactor.url(
                         str(request.url),
                         config.pagination.cursor_param,
-                        continuation=cursor if config.pagination.mode == "url" else None,
+                        continuation=(
+                            cast(str, cursor) if config.pagination.mode == "url" else None
+                        ),
                     ),
                     cursor=redactor.cursor(cursor),
                     next_cursor=redactor.cursor(next_cursor),
@@ -738,6 +774,16 @@ def run(
     trace = Trace(
         tool_version=__version__,
         replay_fingerprint=replay_fingerprint(config, secrets),
+        request_method=config.method,
+        request_body=(
+            RequestBody(
+                fixed_fields=sorted(redactor.text(name) for name in config.body or {}),
+                cursor_field=redactor.text(config.pagination.cursor_param),
+                limit_field=redactor.text(config.pagination.limit_param),
+            )
+            if config.body_mode
+            else None
+        ),
         consistency=config.consistency,
         ordering_fields=[redactor.text(field.field) for field in config.ordering],
         binding_reject_statuses=(

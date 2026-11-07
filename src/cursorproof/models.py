@@ -53,10 +53,20 @@ class MutationEvent(Model):
     after_page: Positive
 
 
+class RequestBody(Model):
+    """Shape of a JSON request body; values are deliberately not recorded."""
+
+    fixed_fields: list[str]
+    cursor_field: str
+    limit_field: str
+
+
 class Trace(Model):
     schema_version: Literal[2] = 2
     tool_version: str
     replay_fingerprint: str | None = None
+    request_method: Literal["GET", "POST"] = "GET"
+    request_body: RequestBody | None = None
     expected_unique_items: int | None = Field(default=None, ge=0)
     consistency: Literal["static", "snapshot", "live-keyset"]
     ordering_fields: list[str] = Field(default_factory=list)
