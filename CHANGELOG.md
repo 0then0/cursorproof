@@ -5,6 +5,25 @@ source; unreleased changes are not available in the latest PyPI package.
 
 ## [Unreleased]
 
+### Added
+
+- `pagination.continuation: link-header` for GET URL mode: the next URL is read from
+  the `rel="next"` relation of the HTTP `Link` header (RFC 8288), as used by the
+  Distribution Registry and GitLab keyset pagination. Items, identities and ordering
+  still come from the JSON body. The default `continuation: json` keeps the existing
+  `response.next_cursor` contract; combining `link-header` with `response.next_cursor`,
+  token mode or `POST` is a configuration error.
+- A bounded `Link` parser: several field lines and links, quoted parameters, relation
+  lists and relative targets. Malformed or oversized headers, different `next` targets
+  and `next` links with an `anchor` are execution errors, never terminal pages. The
+  target passes the unchanged URL-mode origin, endpoint, scope and page-size checks.
+- Trace field `continuation_source` and per-page `link` counts (no header text or
+  targets). Older traces load as `json`; offline replay reports missing or
+  contradictory `Link` evidence as an error. Existing replay fingerprints are
+  unchanged, and a `link-header` configuration has a distinct one.
+- A Distribution Registry example configuration and a
+  [Registry tags validation](docs/registry-tags.md) against `registry:3.0.0`.
+
 ## [0.3.0] - 2026-11-07
 
 ### Added

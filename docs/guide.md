@@ -7,6 +7,7 @@ the recorded observations. For installation and a local demo, see the
 - [Run a check](#run-a-check)
 - [Configure the API and response fields](#configuration)
 - [Follow continuation URLs](#continuation-urls)
+- [Follow the HTTP Link header](#link-header-continuation)
 - [Paginate with a POST JSON body](#post-pagination-with-a-json-body)
 - [Compare against an oracle](#oracle)
 - [Choose consistency and mutation checks](#consistency-and-mutation-hooks)
@@ -47,6 +48,7 @@ parameters:
   status: open
 pagination:
   mode: token # default; url follows explicit continuation links
+  continuation: json # default; link-header reads the next URL from the Link header
   cursor_param: cursor
   limit_param: limit
   terminal_values: [null]
@@ -196,6 +198,114 @@ limit and one repetition, as described below.
 
 See the [Django REST framework example](drf-regression.md) for a local HTTP/ORM
 setup, an independent oracle, pinned versions and replay commands.
+
+### Link header continuation
+
+Some APIs announce the next page only in the HTTP `Link` header
+([RFC 8288](https://www.rfc-editor.org/rfc/rfc8288.html)), for example the
+Distribution Registry and GitLab keyset pagination:
+
+```http
+Link: </v2/example/tags/list?last=beta&n=2>; rel="next"
+```
+
+`pagination.continuation` selects where URL mode reads the continuation. The
+default `json` is the contract above (`response.next_cursor`). `link-header` is
+available after CursorProof 0.3.0 and reads the `next` relation instead:
+
+```yaml
+url: http://127.0.0.1:5000/v2/example/tags/list
+pagination:
+  mode: url
+  continuation: link-header
+  cursor_param: last
+  limit_param: n
+response:
+  items: $.tags
+  id: $
+ordering:
+  - field: $
+    type: string
+limits: [1, 2, 7, 100]
+```
+
+Items, identities, `has_more` and ordering still come from the JSON body. Only
+the continuation comes from the header. `link-header` requires `mode: url`, and
+therefore `GET`. It cannot be combined with `response.next_cursor`: setting both
+is a configuration error, as is `link-header` with token mode or `POST`. The JSON
+body is never used as a fallback. Other pagination headers (`X-Next-Cursor` and
+similar) and GraphQL are not supported.
+
+The extracted target then takes the same path as a JSON continuation URL: the
+[link validation](#link-validation) above applies unchanged, including origin,
+endpoint, scope parameters, page size and the ban on redirects. A link in a
+header gets no additional permissions, and CursorProof never builds the next URL
+from the last item or the current query. A page with a valid `next` link
+continues even when it is empty or short. See
+[examples/registry-tags.yml](../examples/registry-tags.yml) and the
+[Distribution Registry validation](registry-tags.md).
+
+#### Parsing rules
+
+CursorProof parses this grammar and nothing else:
+
+```text
+Link       = #link-value
+link-value = "<" URI-Reference ">" *( OWS ";" OWS link-param )
+link-param = token BWS [ "=" BWS ( token / quoted-string ) ]
+```
+
+- All `Link` field lines of a response are read, and each may hold several
+  comma-separated links. Commas, semicolons and escaped quotes inside a
+  quoted-string or a `<target>` do not split anything. Empty list elements are
+  allowed.
+- A link's relation is its **first** `rel` parameter; later `rel` parameters of
+  the same link are ignored, as RFC 8288 requires. The value is a
+  whitespace-separated list and `next` matches case-insensitively, so
+  `rel="prev next"` is a `next` link. Parameter names are case-insensitive.
+  `rev` is not a relation.
+- Links without `next` are ignored, together with all their parameters. Other
+  parameters of a `next` link (`title`, `type`, `title*`, extensions) are parsed
+  but do not affect the choice.
+- Several `next` links are accepted only when their `<target>` strings are
+  identical character for character. Different targets are an error, even when
+  they would resolve to the same URL. CursorProof does not pick one.
+- A `next` link with an `anchor` parameter is an error. `anchor` replaces the
+  link context, so the link no longer describes the page that was requested, and
+  RFC 8288 forbids processing it without applying the anchor. The target is
+  never resolved against the anchor. An anchor on a link without `next` is
+  ignored with that link.
+- The target is resolved against the current request URL. An empty target `<>`
+  is rejected by the URL checks.
+- The `Link` field values of one response may total at most 8192 bytes.
+- Unquoted values must be tokens (`type=text/html` is malformed; quote it).
+  Quoted strings may contain non-ASCII bytes; the target must be ASCII.
+
+Anything outside these rules is an execution error (exit 2) with a specific
+message, and the traversal stops as incomplete: a malformed header, an oversized
+header, conflicting or anchored `next` links, or a target that fails URL
+validation. None of these is treated as the last page, and no request is sent.
+
+#### Termination
+
+When the `Link` header set parses and contains no `next` link, or the response
+has no `Link` header at all, the traversal ends with `stop: terminal`. This is
+the only terminal signal for this source; `terminal_values` stays `[null]`.
+
+#### Applicability
+
+- Exactly one query parameter, `cursor_param`, may change between pages. GitLab
+  keyset links can change more than one (the documentation says "you can have
+  more than one additional filter", for example `id_after` or `cursor`). Such an
+  endpoint works only when the changing state is a single parameter; otherwise
+  the scope check rejects the link.
+- The page size must stay in the link unchanged. The Registry specification lets
+  a server change or omit `n` in the continuation; such a link is rejected by
+  the scope check. Registry 3.0.0 keeps `n` (see the validation).
+- `cursor_binding` and `boundary_testing` remain unavailable, as for all of URL
+  mode. Oracles, consistency modes, mutation hooks and budgets work as usual.
+- Registry token negotiation, manifest verification and the rest of the RFC 8288
+  framework (`rev`, `title*` decoding, link contexts) are not implemented.
 
 ## POST pagination with a JSON body
 
@@ -545,19 +655,38 @@ fixed top-level fields and the cursor and limit field names. It stores no body v
 only the cursor aliases and the replay fingerprint stand for them, and a `POST` trace
 without its body shape is reported as incomplete. Token, URL and POST modes use trace
 schema 2. URL-mode `cursor` and `next_cursor`
-contain aliases for entire resolved continuation URLs. Request descriptions use
+contain aliases for entire resolved continuation URLs, whether they came from the
+JSON body or a `Link` header. Request descriptions use
 the same aliases for cursor query values and mask sensitive query parameters.
 Raw continuation URLs are not stored in a separate field.
 
+`continuation_source` records where continuations came from: `json` or
+`link-header`. A trace written before this field existed has no such field and
+loads as `json`, which is what every earlier version recorded; it is never read
+as a `Link` trace. In a `link-header` trace each page has `link` with three
+counts from the parsed header set: `field_lines`, `links` and `next_links`.
+`next_links` is zero exactly on a terminal page. The header text, the link
+targets and their query values are not stored. Offline replay reports an error,
+not a pass, when a `link-header` trace lacks this evidence for a page, when the
+evidence contradicts the recorded continuation, or when a `json` trace carries
+`link` evidence. A page whose header could not be parsed or validated is not
+recorded as a page; the trace keeps the error message and `stop: error`. The
+schema version stays 2. CursorProof 0.3.0 and earlier reject traces that contain
+the new fields instead of misreading them.
+
 Token-mode replay fingerprints remain compatible when `mode: token` is explicit
-or omitted. Switching between token and URL mode changes the replay contract
+or omitted, and JSON URL-mode fingerprints are unchanged when `continuation: json`
+is explicit or omitted. The fingerprint of a `link-header` configuration includes
+the source and omits the unused `response.next_cursor`, so switching the source
+rejects live replay. Switching between token and URL mode changes the replay contract
 and rejects live replay with a configuration-contract mismatch.
 
 ### Recorded data and redaction
 
 The trace stores page boundaries, identity sequences, status codes, request
 descriptions, cursor aliases and order-preserving ranks for sort values. It
-does not store full response bodies, headers, commands or raw cursors.
+does not store full response bodies, headers, commands or raw cursors. For a
+`Link` continuation it stores counts only, as described above.
 
 Environment substitutions and configured header values are redacted from recorded
 strings; cursor aliases retain equality/cycle evidence. Snapshot field values are

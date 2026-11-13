@@ -74,6 +74,27 @@ scope parameters and page size. It does not follow redirects. The
 explains authentication, response paths, ordering, oracles and the
 [continuation URL contract](https://github.com/0then0/cursorproof/blob/main/docs/guide.md#continuation-urls).
 
+When the next URL is only in the HTTP `Link` header, as in the Distribution
+Registry or GitLab keyset pagination, select that source instead of a JSON path
+(after 0.3.0; install from a checkout until the next release):
+
+```yaml
+pagination:
+  mode: url
+  continuation: link-header
+  cursor_param: last
+  limit_param: n
+response:
+  items: $.tags
+  id: $
+```
+
+The `rel="next"` target goes through the same URL checks. A malformed, ambiguous
+or anchored `next` link is an error, not the last page. See the
+[Link header guide](https://github.com/0then0/cursorproof/blob/main/docs/guide.md#link-header-continuation),
+the [Registry example](https://github.com/0then0/cursorproof/blob/main/examples/registry-tags.yml)
+and its [validation against a real registry](https://github.com/0then0/cursorproof/blob/main/docs/registry-tags.md).
+
 ## Try the local demo
 
 Clone the [repository](https://github.com/0then0/cursorproof) and run these

@@ -1,0 +1,92 @@
+{
+  "image": "registry:3.0.0@sha256:6c5666b861f3505b116bb9aa9b25175e71210414bd010d92035ff64018f9457e",
+  "commands": [
+    "docker run -d --rm --name cursorproof-registry-lab --tmpfs /var/lib/registry -p 127.0.0.1:15000:5000 registry:3.0.0@sha256:6c5666b861f3505b116bb9aa9b25175e71210414bd010d92035ff64018f9457e",
+    "POST+PUT http://127.0.0.1:15000/v2/cursorproof/tags/blobs/uploads/ (one 2-byte config)",
+    "PUT http://127.0.0.1:15000/v2/cursorproof/tags/manifests/<tag> (24 tags, one layerless manifest)",
+    "the same for cursorproof/partial without ['1.2', 'alpha.1', 'zeta']",
+    "docker rm -f -v cursorproof-registry-lab"
+  ],
+  "runs": {
+    "tags": {
+      "exit_code": 0,
+      "findings": [],
+      "errors": [],
+      "traversals": 5,
+      "pages_per_limit": {
+        "1": 24,
+        "5": 5,
+        "8": 3,
+        "24": 1,
+        "100": 1
+      },
+      "stops": [
+        "terminal"
+      ],
+      "unique_items": 24,
+      "repository_items": 24,
+      "oracle_items": 24,
+      "every_stream_equals_repository_tags_in_order": true,
+      "offline_replay_exit_code": 0,
+      "offline_replay_equals_run": true,
+      "live_replay_exit_code": 0
+    },
+    "tags-partial": {
+      "exit_code": 1,
+      "findings": [
+        "CP003"
+      ],
+      "errors": [],
+      "traversals": 5,
+      "pages_per_limit": {
+        "1": 21,
+        "5": 5,
+        "8": 3,
+        "24": 1,
+        "100": 1
+      },
+      "stops": [
+        "terminal"
+      ],
+      "unique_items": 21,
+      "repository_items": 21,
+      "oracle_items": 24,
+      "every_stream_equals_repository_tags_in_order": true,
+      "offline_replay_exit_code": 1,
+      "offline_replay_equals_run": true,
+      "live_replay_exit_code": 1
+    }
+  },
+  "registry_version": "registry github.com/distribution/distribution/v3 3.0.0",
+  "container_mounts": [],
+  "api_observations": [
+    {
+      "request": "GET /v2/cursorproof/tags/tags/list?n=5",
+      "link": [
+        "</v2/cursorproof/tags/tags/list?last=10&n=5>; rel=\"next\""
+      ],
+      "body": {
+        "name": "cursorproof/tags",
+        "tags": [
+          "0.9",
+          "1.0",
+          "1.10",
+          "1.2",
+          "10"
+        ]
+      }
+    },
+    {
+      "request": "GET /v2/cursorproof/tags/tags/list?n=5&last=v2",
+      "link": [],
+      "body": {
+        "name": "cursorproof/tags",
+        "tags": [
+          "zeta"
+        ]
+      }
+    }
+  ],
+  "container_removed": true,
+  "passed": true
+}

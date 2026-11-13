@@ -1,0 +1,27 @@
+# Distribution Registry: GET /v2/<name>/tags/list?n=<page size>&last=<tag>.
+# The body is {"name": ..., "tags": ["a", "b"]}; the next page is only announced in
+#   Link: </v2/<name>/tags/list?last=b&n=2>; rel="next"
+# CursorProof follows that server URL after the usual URL-mode checks. It never builds
+# `last` from the final tag. A response without a `next` link ends the traversal.
+url: http://127.0.0.1:5000/v2/example/tags/list
+# headers:
+#   Authorization: Bearer ${REGISTRY_TOKEN}
+pagination:
+  mode: url
+  continuation: link-header
+  cursor_param: last
+  limit_param: n
+response:
+  items: $.tags
+  id: $ # each item is the tag string itself
+ordering:
+  - field: $
+    type: string
+limits: [1, 2, 7, 100]
+max_pages: 1000
+max_items: 10000
+# An independent expected population is what establishes completeness. Derive it from
+# the tags you pushed, not from the registry's own tags/list.
+# oracle:
+#   command: [python, expected_tags.py]
+#   ordered: true

@@ -1,0 +1,1440 @@
+{
+  "schema_version": 2,
+  "tool_version": "0.3.0",
+  "replay_fingerprint": "432e43ce4ea2b2fba5a258cc8c2e1c5e32bea686c6ef20d0f97a52ce3ee66739",
+  "request_method": "GET",
+  "request_body": null,
+  "continuation_source": "link-header",
+  "expected_unique_items": null,
+  "consistency": "static",
+  "ordering_fields": [
+    "$"
+  ],
+  "traversals": [
+    {
+      "limit": 1,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?n=1",
+          "cursor": null,
+          "next_cursor": "cursor_1",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "0.9",
+              "sort_key": [
+                0
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_1&n=1",
+          "cursor": "cursor_1",
+          "next_cursor": "cursor_2",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "1.0",
+              "sort_key": [
+                1
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_2&n=1",
+          "cursor": "cursor_2",
+          "next_cursor": "cursor_3",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "1.10",
+              "sort_key": [
+                2
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_3&n=1",
+          "cursor": "cursor_3",
+          "next_cursor": "cursor_4",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "1.2",
+              "sort_key": [
+                3
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 5,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_4&n=1",
+          "cursor": "cursor_4",
+          "next_cursor": "cursor_5",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "10",
+              "sort_key": [
+                4
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 6,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_5&n=1",
+          "cursor": "cursor_5",
+          "next_cursor": "cursor_6",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "2",
+              "sort_key": [
+                5
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 7,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_6&n=1",
+          "cursor": "cursor_6",
+          "next_cursor": "cursor_7",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "Beta",
+              "sort_key": [
+                6
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 8,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_7&n=1",
+          "cursor": "cursor_7",
+          "next_cursor": "cursor_8",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "RC1",
+              "sort_key": [
+                7
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 9,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_8&n=1",
+          "cursor": "cursor_8",
+          "next_cursor": "cursor_9",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "Zulu",
+              "sort_key": [
+                8
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 10,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_9&n=1",
+          "cursor": "cursor_9",
+          "next_cursor": "cursor_10",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "_internal",
+              "sort_key": [
+                9
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 11,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_10&n=1",
+          "cursor": "cursor_10",
+          "next_cursor": "cursor_11",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "alpha",
+              "sort_key": [
+                10
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 12,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_11&n=1",
+          "cursor": "cursor_11",
+          "next_cursor": "cursor_12",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "alpha-1",
+              "sort_key": [
+                11
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 13,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_12&n=1",
+          "cursor": "cursor_12",
+          "next_cursor": "cursor_13",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "alpha.1",
+              "sort_key": [
+                12
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 14,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_13&n=1",
+          "cursor": "cursor_13",
+          "next_cursor": "cursor_14",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "alpha_1",
+              "sort_key": [
+                13
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 15,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_14&n=1",
+          "cursor": "cursor_14",
+          "next_cursor": "cursor_15",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "beta",
+              "sort_key": [
+                14
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 16,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_15&n=1",
+          "cursor": "cursor_15",
+          "next_cursor": "cursor_16",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "edge",
+              "sort_key": [
+                15
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 17,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_16&n=1",
+          "cursor": "cursor_16",
+          "next_cursor": "cursor_17",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "latest",
+              "sort_key": [
+                16
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 18,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_17&n=1",
+          "cursor": "cursor_17",
+          "next_cursor": "cursor_18",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "nightly",
+              "sort_key": [
+                17
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 19,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_18&n=1",
+          "cursor": "cursor_18",
+          "next_cursor": "cursor_19",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "stable",
+              "sort_key": [
+                18
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 20,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_19&n=1",
+          "cursor": "cursor_19",
+          "next_cursor": "cursor_20",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "v1",
+              "sort_key": [
+                19
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 21,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_20&n=1",
+          "cursor": "cursor_20",
+          "next_cursor": "cursor_21",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "v1.0.0",
+              "sort_key": [
+                20
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 22,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_21&n=1",
+          "cursor": "cursor_21",
+          "next_cursor": "cursor_22",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "v10",
+              "sort_key": [
+                21
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 23,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_22&n=1",
+          "cursor": "cursor_22",
+          "next_cursor": "cursor_23",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "v2",
+              "sort_key": [
+                22
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 24,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_23&n=1",
+          "cursor": "cursor_23",
+          "next_cursor": null,
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 0,
+            "links": 0,
+            "next_links": 0
+          },
+          "items": [
+            {
+              "id": "zeta",
+              "sort_key": [
+                23
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    },
+    {
+      "limit": 5,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?n=5",
+          "cursor": null,
+          "next_cursor": "cursor_24",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "0.9",
+              "sort_key": [
+                0
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.0",
+              "sort_key": [
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.10",
+              "sort_key": [
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.2",
+              "sort_key": [
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "10",
+              "sort_key": [
+                4
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_24&n=5",
+          "cursor": "cursor_24",
+          "next_cursor": "cursor_25",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "2",
+              "sort_key": [
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "Beta",
+              "sort_key": [
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "RC1",
+              "sort_key": [
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "Zulu",
+              "sort_key": [
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "_internal",
+              "sort_key": [
+                9
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_25&n=5",
+          "cursor": "cursor_25",
+          "next_cursor": "cursor_26",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "alpha",
+              "sort_key": [
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha-1",
+              "sort_key": [
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha.1",
+              "sort_key": [
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha_1",
+              "sort_key": [
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "beta",
+              "sort_key": [
+                14
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_26&n=5",
+          "cursor": "cursor_26",
+          "next_cursor": "cursor_27",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "edge",
+              "sort_key": [
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "latest",
+              "sort_key": [
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "nightly",
+              "sort_key": [
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "stable",
+              "sort_key": [
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v1",
+              "sort_key": [
+                19
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 5,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_27&n=5",
+          "cursor": "cursor_27",
+          "next_cursor": null,
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 0,
+            "links": 0,
+            "next_links": 0
+          },
+          "items": [
+            {
+              "id": "v1.0.0",
+              "sort_key": [
+                20
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v10",
+              "sort_key": [
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v2",
+              "sort_key": [
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "zeta",
+              "sort_key": [
+                23
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    },
+    {
+      "limit": 8,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?n=8",
+          "cursor": null,
+          "next_cursor": "cursor_28",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "0.9",
+              "sort_key": [
+                0
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.0",
+              "sort_key": [
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.10",
+              "sort_key": [
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.2",
+              "sort_key": [
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "10",
+              "sort_key": [
+                4
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "2",
+              "sort_key": [
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "Beta",
+              "sort_key": [
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "RC1",
+              "sort_key": [
+                7
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_28&n=8",
+          "cursor": "cursor_28",
+          "next_cursor": "cursor_29",
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 1,
+            "links": 1,
+            "next_links": 1
+          },
+          "items": [
+            {
+              "id": "Zulu",
+              "sort_key": [
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "_internal",
+              "sort_key": [
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha",
+              "sort_key": [
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha-1",
+              "sort_key": [
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha.1",
+              "sort_key": [
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha_1",
+              "sort_key": [
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "beta",
+              "sort_key": [
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "edge",
+              "sort_key": [
+                15
+              ],
+              "fingerprint": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?last=cursor_29&n=8",
+          "cursor": "cursor_29",
+          "next_cursor": null,
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 0,
+            "links": 0,
+            "next_links": 0
+          },
+          "items": [
+            {
+              "id": "latest",
+              "sort_key": [
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "nightly",
+              "sort_key": [
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "stable",
+              "sort_key": [
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v1",
+              "sort_key": [
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v1.0.0",
+              "sort_key": [
+                20
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v10",
+              "sort_key": [
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v2",
+              "sort_key": [
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "zeta",
+              "sort_key": [
+                23
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    },
+    {
+      "limit": 24,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?n=24",
+          "cursor": null,
+          "next_cursor": null,
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 0,
+            "links": 0,
+            "next_links": 0
+          },
+          "items": [
+            {
+              "id": "0.9",
+              "sort_key": [
+                0
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.0",
+              "sort_key": [
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.10",
+              "sort_key": [
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.2",
+              "sort_key": [
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "10",
+              "sort_key": [
+                4
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "2",
+              "sort_key": [
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "Beta",
+              "sort_key": [
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "RC1",
+              "sort_key": [
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "Zulu",
+              "sort_key": [
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "_internal",
+              "sort_key": [
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha",
+              "sort_key": [
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha-1",
+              "sort_key": [
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha.1",
+              "sort_key": [
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha_1",
+              "sort_key": [
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "beta",
+              "sort_key": [
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "edge",
+              "sort_key": [
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "latest",
+              "sort_key": [
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "nightly",
+              "sort_key": [
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "stable",
+              "sort_key": [
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v1",
+              "sort_key": [
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v1.0.0",
+              "sort_key": [
+                20
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v10",
+              "sort_key": [
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v2",
+              "sort_key": [
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "zeta",
+              "sort_key": [
+                23
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    },
+    {
+      "limit": 100,
+      "repetition": 1,
+      "pages": [
+        {
+          "number": 1,
+          "request": "http://127.0.0.1:15000/v2/cursorproof/tags/tags/list?n=100",
+          "cursor": null,
+          "next_cursor": null,
+          "has_more": null,
+          "status": 200,
+          "link": {
+            "field_lines": 0,
+            "links": 0,
+            "next_links": 0
+          },
+          "items": [
+            {
+              "id": "0.9",
+              "sort_key": [
+                0
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.0",
+              "sort_key": [
+                1
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.10",
+              "sort_key": [
+                2
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "1.2",
+              "sort_key": [
+                3
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "10",
+              "sort_key": [
+                4
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "2",
+              "sort_key": [
+                5
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "Beta",
+              "sort_key": [
+                6
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "RC1",
+              "sort_key": [
+                7
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "Zulu",
+              "sort_key": [
+                8
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "_internal",
+              "sort_key": [
+                9
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha",
+              "sort_key": [
+                10
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha-1",
+              "sort_key": [
+                11
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha.1",
+              "sort_key": [
+                12
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "alpha_1",
+              "sort_key": [
+                13
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "beta",
+              "sort_key": [
+                14
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "edge",
+              "sort_key": [
+                15
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "latest",
+              "sort_key": [
+                16
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "nightly",
+              "sort_key": [
+                17
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "stable",
+              "sort_key": [
+                18
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v1",
+              "sort_key": [
+                19
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v1.0.0",
+              "sort_key": [
+                20
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v10",
+              "sort_key": [
+                21
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "v2",
+              "sort_key": [
+                22
+              ],
+              "fingerprint": null
+            },
+            {
+              "id": "zeta",
+              "sort_key": [
+                23
+              ],
+              "fingerprint": null
+            }
+          ]
+        }
+      ],
+      "stop": "terminal"
+    }
+  ],
+  "oracle": [
+    "0.9",
+    "1.0",
+    "1.10",
+    "1.2",
+    "10",
+    "2",
+    "Beta",
+    "RC1",
+    "Zulu",
+    "_internal",
+    "alpha",
+    "alpha-1",
+    "alpha.1",
+    "alpha_1",
+    "beta",
+    "edge",
+    "latest",
+    "nightly",
+    "stable",
+    "v1",
+    "v1.0.0",
+    "v10",
+    "v2",
+    "zeta"
+  ],
+  "oracle_ordered": true,
+  "oracle_snapshot": null,
+  "binding_reject_statuses": [
+    400,
+    409,
+    422
+  ],
+  "binding_cases_expected": 0,
+  "bindings": [],
+  "mutations": [],
+  "errors": [],
+  "notes": [
+    "Static contract: the dataset must remain unchanged across all traversals."
+  ]
+}

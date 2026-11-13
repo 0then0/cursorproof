@@ -1,0 +1,27 @@
+url: http://127.0.0.1:15000/v2/cursorproof/partial/tags/list
+pagination:
+  mode: url
+  continuation: link-header
+  cursor_param: last
+  limit_param: n
+response:
+  items: $.tags
+  id: $
+ordering:
+- field: $
+  type: string
+limits:
+- 1
+- 5
+- 8
+- 24
+- 100
+repeats: 1
+max_pages: 1000
+max_items: 10000
+oracle:
+  command:
+  - python3
+  - ../oracle.py
+  format: json
+  ordered: true

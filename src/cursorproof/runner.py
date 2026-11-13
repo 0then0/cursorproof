@@ -19,12 +19,14 @@ import httpx
 from cursorproof import __version__
 from cursorproof.checks import CursorPageState, analyze, cursor_page_state, identity_key
 from cursorproof.config import Config, Cursor, Identity, Oracle, Ordering, Parameter, url_reference
+from cursorproof.links import LinkError, next_link
 from cursorproof.models import (
     BindingObservation,
     BoundaryCase,
     BoundaryReport,
     Issue,
     Item,
+    LinkEvidence,
     MutationEvent,
     Page,
     Report,
@@ -365,7 +367,10 @@ def validate_binding_baseline(body: bytes, config: Config, limit: int) -> None:
         raise ExecutionError("Changed query returned items out of declared order")
 
 
-def fetch(client: httpx.Client, request: httpx.Request, max_bytes: int) -> tuple[int, bytes]:
+def fetch_page(
+    client: httpx.Client, request: httpx.Request, max_bytes: int
+) -> tuple[int, bytes, list[bytes]]:
+    """Return the status, the bounded body and the raw `Link` field lines."""
     try:
         response = client.send(request, stream=True)
         try:
@@ -374,11 +379,40 @@ def fetch(client: httpx.Client, request: httpx.Request, max_bytes: int) -> tuple
                 if len(body) + len(chunk) > max_bytes:
                     raise ExecutionError("Response exceeded max_response_bytes")
                 body.extend(chunk)
-            return response.status_code, bytes(body)
+            links = [value for name, value in response.headers.raw if name.lower() == b"link"]
+            return response.status_code, bytes(body), links
         finally:
             response.close()
     except httpx.HTTPError:
         raise ExecutionError("HTTP request failed or timed out") from None
+
+
+def fetch(client: httpx.Client, request: httpx.Request, max_bytes: int) -> tuple[int, bytes]:
+    status, body, _ = fetch_page(client, request, max_bytes)
+    return status, body
+
+
+def continuation(
+    config: Config, payload: object, link_lines: list[bytes]
+) -> tuple[object, LinkEvidence | None]:
+    """Extract the raw continuation from the configured source, without validating it.
+
+    Both sources return the server's value for the same cursor, termination and URL checks.
+    """
+    if config.link_continuation:
+        try:
+            parsed = next_link(link_lines)
+        except LinkError as exc:
+            raise ExecutionError(str(exc)) from None
+        return parsed.target, LinkEvidence(
+            field_lines=parsed.field_lines, links=parsed.links, next_links=parsed.next_links
+        )
+    try:
+        return extract(payload, config.response.next_cursor), None
+    except ValueError:
+        if config.pagination.mode == "token":
+            raise
+        raise ExecutionError("Required continuation field is missing or invalid") from None
 
 
 def command_output(command: list[str], timeout: float, cwd: Path, max_bytes: int) -> bytes:
@@ -664,17 +698,12 @@ def traverse(
                 )
             else:
                 request = page_request(client, config, traversal.limit, cursor)
-            status, body = fetch(client, request, config.max_response_bytes)
+            status, body, link_lines = fetch_page(client, request, config.max_response_bytes)
             if not 200 <= status < 300:
                 raise ExecutionError(f"Traversal returned HTTP {status}")
             payload = decode_json(body)
             values = extract(payload, config.response.items)
-            try:
-                raw_cursor = extract(payload, config.response.next_cursor)
-            except ValueError:
-                if config.pagination.mode == "token":
-                    raise
-                raise ExecutionError("Required continuation field is missing or invalid") from None
+            raw_cursor, link_evidence = continuation(config, payload, link_lines)
             raw_cursor = cursor_value(raw_cursor, config)
             if raw_cursor is None and None not in config.pagination.terminal_values:
                 raise ExecutionError("Null cursor is not declared as a terminal value")
@@ -726,6 +755,7 @@ def traverse(
                     next_cursor=redactor.cursor(next_cursor),
                     has_more=cast(bool | None, has_more),
                     status=status,
+                    link=link_evidence,
                     items=[row.item for row in page_rows],
                 )
             )
@@ -775,6 +805,7 @@ def run(
         tool_version=__version__,
         replay_fingerprint=replay_fingerprint(config, secrets),
         request_method=config.method,
+        continuation_source=config.pagination.continuation,
         request_body=(
             RequestBody(
                 fixed_fields=sorted(redactor.text(name) for name in config.body or {}),

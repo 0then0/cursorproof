@@ -183,6 +183,12 @@ def replay_fingerprint(config: object, secrets: set[str] | None = None) -> str |
     if config.pagination.mode == "token":
         # Preserve the v2 fingerprints of existing token configurations.
         del contract["pagination"]["mode"]
+    if config.link_continuation:
+        # The JSON path is unused, so it is not part of this contract.
+        del contract["response"]["next_cursor"]
+    else:
+        # Preserve the fingerprints of existing JSON-continuation configurations.
+        del contract["pagination"]["continuation"]
     body = contract.pop("body")
     if config.method == "GET":
         del contract["method"]

@@ -47,6 +47,9 @@ def analyze(trace: Trace) -> Report:
             errors.append(Issue(message="Snapshot trace is missing a full-record fingerprint"))
     if (trace.request_method == "POST") != (trace.request_body is not None):
         errors.append(Issue(message="Trace request method and JSON body evidence disagree"))
+    link_source = trace.continuation_source == "link-header"
+    if link_source and trace.request_method != "GET":
+        errors.append(Issue(message="Link header continuation trace must use GET"))
     complete: list[tuple[int, list[Identity]]] = []
     all_ids: set[tuple[type[str] | type[int], Identity]] = set()
     total_items = 0
@@ -64,6 +67,29 @@ def analyze(trace: Trace) -> Report:
                 errors.append(Issue(message="Trace has inconsistent page/cursor linkage"))
             if not 200 <= page.status < 300:
                 errors.append(Issue(message="Trace contains a non-successful traversal response"))
+            if not link_source:
+                if page.link is not None:
+                    errors.append(
+                        Issue(message="Trace has Link header evidence for a JSON continuation")
+                    )
+            elif page.link is None:
+                errors.append(
+                    Issue(
+                        message="Trace lacks Link header evidence; termination is unverified",
+                        traversal=run_number,
+                        page=page.number,
+                    )
+                )
+            elif page.link.next_links > page.link.links or (page.link.next_links > 0) != (
+                page.next_cursor is not None
+            ):
+                errors.append(
+                    Issue(
+                        message="Link header evidence disagrees with the recorded continuation",
+                        traversal=run_number,
+                        page=page.number,
+                    )
+                )
             if len(page.items) > traversal.limit:
                 findings.append(
                     Finding(

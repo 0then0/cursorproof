@@ -128,6 +128,7 @@ def json_body(value: dict[str, Any]) -> dict[str, Any]:
 
 class Pagination(Model):
     mode: Literal["token", "url"] = "token"
+    continuation: Literal["json", "link-header"] = "json"
     cursor_param: str = "cursor"
     limit_param: str = "limit"
     terminal_values: list[str | int | None] = Field(default_factory=terminal_default, min_length=1)
@@ -138,6 +139,8 @@ class Pagination(Model):
             raise ValueError("Cursor and limit parameter names must be nonempty and different")
         if self.mode == "url" and self.terminal_values != [None]:
             raise ValueError("URL mode requires terminal_values: [null]")
+        if self.continuation == "link-header" and self.mode != "url":
+            raise ValueError("continuation: link-header requires pagination.mode: url")
         return self
 
 
@@ -278,6 +281,11 @@ class Config(Model):
         """The cursor and page size travel in a JSON request body."""
         return self.method == "POST"
 
+    @property
+    def link_continuation(self) -> bool:
+        """The next URL comes from the HTTP Link header, not from the JSON body."""
+        return self.pagination.continuation == "link-header"
+
     @model_validator(mode="after")
     def contract(self) -> "Config":
         if self.method == "GET" and self.body is not None:
@@ -296,6 +304,11 @@ class Config(Model):
             url_reference(self.url)
             if self.cursor_binding is not None or self.boundary_testing is not None:
                 raise ValueError("URL mode does not support cursor_binding or boundary_testing")
+        if self.link_continuation and "next_cursor" in self.response.model_fields_set:
+            raise ValueError(
+                "response.next_cursor is a JSON path and conflicts with "
+                "pagination.continuation: link-header; remove one of them"
+            )
         if len(set(self.limits)) != len(self.limits):
             raise ValueError("Limits must be unique")
         reserved = {self.pagination.cursor_param, self.pagination.limit_param}

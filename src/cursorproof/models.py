@@ -16,6 +16,14 @@ class SnapshotItem(Model):
     fingerprint: str
 
 
+class LinkEvidence(Model):
+    """Counts from a successfully parsed Link header set; targets are not recorded."""
+
+    field_lines: int = Field(ge=0)
+    links: int = Field(ge=0)
+    next_links: int = Field(ge=0)
+
+
 class Page(Model):
     number: Positive
     request: str
@@ -23,6 +31,7 @@ class Page(Model):
     next_cursor: str | None
     has_more: bool | None = None
     status: int = 200
+    link: LinkEvidence | None = None
     items: list[Item]
 
 
@@ -67,6 +76,7 @@ class Trace(Model):
     replay_fingerprint: str | None = None
     request_method: Literal["GET", "POST"] = "GET"
     request_body: RequestBody | None = None
+    continuation_source: Literal["json", "link-header"] = "json"
     expected_unique_items: int | None = Field(default=None, ge=0)
     consistency: Literal["static", "snapshot", "live-keyset"]
     ordering_fields: list[str] = Field(default_factory=list)
