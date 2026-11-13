@@ -211,7 +211,7 @@ Link: </v2/example/tags/list?last=beta&n=2>; rel="next"
 
 `pagination.continuation` selects where URL mode reads the continuation. The
 default `json` is the contract above (`response.next_cursor`). `link-header` is
-available after CursorProof 0.3.0 and reads the `next` relation instead:
+available in CursorProof 0.4.0 and later and reads the `next` relation instead:
 
 ```yaml
 url: http://127.0.0.1:5000/v2/example/tags/list

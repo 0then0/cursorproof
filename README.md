@@ -76,7 +76,7 @@ explains authentication, response paths, ordering, oracles and the
 
 When the next URL is only in the HTTP `Link` header, as in the Distribution
 Registry or GitLab keyset pagination, select that source instead of a JSON path
-(after 0.3.0; install from a checkout until the next release):
+(CursorProof 0.4.0 or newer):
 
 ```yaml
 pagination:
